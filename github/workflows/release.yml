@@ -1,0 +1,47 @@
+name: Build & Release Flashable Zip
+
+on:
+  workflow_dispatch: # يتيح تشغيل البناء يدوياً بنقرة زر واحدة
+  push:
+    tags:
+      - 'v*' # يعمل تلقائياً عند إنشاء Tag مثل v2.0
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Package Module Zip
+        id: package
+        run: |
+          # استخراج رقم الإصدار من ملف module.prop
+          VERSION=$(grep '^version=' module.prop | cut -d= -f2 | tr -d '\r')
+          [ -z "$VERSION" ] && VERSION="v2.0"
+          ZIP_NAME="IFOKNR-Thermal-Manager-${VERSION}.zip"
+
+          # ضغط الملفات من الجذر مباشرة لضمان قبول التفليش في KernelSU/Magisk
+          zip -r9 "$ZIP_NAME" META-INF config.sh module.prop service.sh update-desc.sh webroot -x "*.git*" "*.github*" "README.md" "LICENSE"
+
+          echo "zip_name=$ZIP_NAME" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Publish to GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.package.outputs.version }}
+          name: "IFOKNR - Thermal Manager ${{ steps.package.outputs.version }}"
+          body: |
+            ### 🚀 IFOKNR - Thermal Manager (S10 Ultra Edition)
+            - Optimized for Samsung Galaxy Tab S10 Ultra (MediaTek Dimensity 9300+).
+            - Pure Black AMOLED UI with Cyberpunk/Neon accents.
+            - Custom profiles: Battery, Balanced, Performance, and Gaming.
+            
+            **Flash via KernelSU / APatch / Magisk.**
+          files: ${{ steps.package.outputs.zip_name }}
+          draft: false
+          prerelease: false
