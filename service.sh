@@ -45,6 +45,15 @@ set_profile() {
             reset_frequencies
             set_gpu_boost 1
 
+            # تطبيق حاكم sugov_ext وتسريع الاستجابة الفورية
+            for cpu in /sys/devices/system/cpu/cpu*/cpufreq; do
+                [ -d "$cpu" ] && echo "sugov_ext" > "$cpu/scaling_governor" 2>/dev/null
+            done
+            for pol in /sys/devices/system/cpu/cpufreq/policy*; do
+                [ -d "$pol" ] && echo "sugov_ext" > "$pol/scaling_governor" 2>/dev/null
+            done
+            [ -d /sys/devices/system/cpu/cpufreq/sugov_ext ] && echo 0 > /sys/devices/system/cpu/cpufreq/sugov_ext/up_rate_limit_us 2>/dev/null
+
             # رفع الحد الأدنى للأنوية Cortex-X4 إلى 1.8GHz لمنع تساقط الفريمات
             for cpu in /sys/devices/system/cpu/cpu[4-7]/cpufreq; do
                 [ -d "$cpu" ] && echo "1800000" > "$cpu/scaling_min_freq" 2>/dev/null
@@ -57,6 +66,15 @@ set_profile() {
             
             reset_frequencies
             set_gpu_boost 1
+
+            # تطبيق حاكم sugov_ext وتسريع الاستجابة الفورية
+            for cpu in /sys/devices/system/cpu/cpu*/cpufreq; do
+                [ -d "$cpu" ] && echo "sugov_ext" > "$cpu/scaling_governor" 2>/dev/null
+            done
+            for pol in /sys/devices/system/cpu/cpufreq/policy*; do
+                [ -d "$pol" ] && echo "sugov_ext" > "$pol/scaling_governor" 2>/dev/null
+            done
+            [ -d /sys/devices/system/cpu/cpufreq/sugov_ext ] && echo 0 > /sys/devices/system/cpu/cpufreq/sugov_ext/up_rate_limit_us 2>/dev/null
             ;;
 
         "battery"|"1")
