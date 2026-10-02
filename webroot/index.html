@@ -3,13 +3,18 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Thermal Mode Manager</title>
+        <title>IFOKNR - Thermal Manager</title>
         <link rel="stylesheet" href="./index.css" type="text/css" />
     </head>
     <body>
+        <!-- Header -->
         <div class="header">
-            <div class="title">Thermal Manager</div>
+            <div class="title">IFOKNR - Thermal Manager</div>
+            <div class="subtitle" style="font-size: 0.82rem; opacity: 0.75; margin-top: 4px; text-align: center;">
+                Galaxy Tab S10 Ultra • Dimensity 9300+
+            </div>
         </div>
+
         <div class="preload-hidden body-content">
             <!-- Current Mode -->
             <div class="settings-group-title">Current Mode</div>
@@ -85,14 +90,22 @@
             </div>
         </div>
 
-            <!-- About -->
-            <div class="settings-group-title">About</div>
-            <div class="settings-group">
-                <p style="text-align: center; padding: 16px;">
-                    Created by 
-                    <a style="color: var(--md-sys-color-primary); text-decoration: none; cursor: pointer;" id="github-link">Ahmed Al-Nassif</a>
+        <!-- About Section -->
+        <div class="settings-group-title">About</div>
+        <div class="settings-group">
+            <div style="text-align: center; padding: 18px 16px; line-height: 1.6;">
+                <p style="margin: 0; font-weight: 600; font-size: 0.95rem;">
+                    Modified & Maintained by <span style="color: var(--md-sys-color-primary, #2c7bf6);">ifoknr</span>
+                </p>
+                <p style="margin: 6px 0 0 0; font-size: 0.85rem; opacity: 0.75;">
+                    Forked from 
+                    <a href="https://github.com/ahmed-alnassif" target="_blank" style="color: var(--md-sys-color-primary, #2c7bf6); text-decoration: underline; font-weight: 500;" id="github-link">Ahmed Al-Nassif</a>
+                </p>
+                <p style="margin: 4px 0 0 0; font-size: 0.75rem; opacity: 0.55;">
+                    Custom build for Samsung Galaxy Tab S10 Ultra (Dimensity 9300+)
                 </p>
             </div>
+        </div>
 
         <script type="module" src="./index.js"></script>
     </body>
