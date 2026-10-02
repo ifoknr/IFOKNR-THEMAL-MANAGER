@@ -1,4 +1,8 @@
 # IFOKNR - Thermal Manager
+<p align="center">
+  <img src="./banner.jpg" alt="IFOKNR - Thermal Manager" width="100%">
+</p>
+
 
 [![Platform](https://img.shields.io/badge/Platform-Android%2014%2B%20%7C%20One%20UI-blue.svg)](https://www.samsung.com)
 [![Device](https://img.shields.io/badge/Device-Galaxy%20Tab%20S10%20Ultra-00f0ff.svg)](https://www.samsung.com)
