@@ -1,113 +1,108 @@
-MODDIR=/data/adb/modules/thermal_mode_manager
-THERMAL_PATH=/sys/class/thermal/thermal_message/sconfig
-CONFIG_FILE=${MODDIR}/current_mode
-CONFIG_SH=${MODDIR}/config.sh
-PID_FILE=${MODDIR}/service.pid
+#!/system/bin/sh
+MODDIR=${0%/*}
 
-# Default mode
-config_thermal_mode=0
-config_auto_battery_saver=0
-. ${CONFIG_SH} 2>/dev/null
+# تسجيل معرف العملية للواجهة
+echo $$ > "$MODDIR/service.pid"
 
-# Wait for thermal interface
-until [ -f ${THERMAL_PATH} ]; do
-    sleep 5
+# انتظار اكتمال إقلاع النظام
+until [ "$(getprop sys.boot_completed)" = "1" ]; do
+    sleep 3
 done
+sleep 5
 
-is_screen_on() {
-    dumpsys power 2>/dev/null | grep -q "mWakefulness=Awake" && echo "1" || echo "0"
-}
+# إنشاء الملفات التأسيسية
+[ ! -f "$MODDIR/mode" ] && echo "balanced" > "$MODDIR/mode"
+[ ! -f "$MODDIR/current_mode" ] && echo "0" > "$MODDIR/current_mode"
+[ ! -f "$MODDIR/auto_battery" ] && echo "0" > "$MODDIR/auto_battery"
 
-# Function to apply mode
-apply_mode() {
-    local mode=$1
-    if [ -f ${THERMAL_PATH} ]; then
-        echo "$mode" > ${THERMAL_PATH} 2>/dev/null
-    fi
-}
-
-# Function to get current mode
-get_mode() {
-    cat ${THERMAL_PATH} 2>/dev/null || echo "0"
-}
-
-# Function to get mode name
-get_mode_name() {
-    case $1 in
-        0) echo "Balanced ⚖️" ;;
-        1) echo "Battery Saver 🔋" ;;
-        6) echo "Performance ⚡" ;;
-        19) echo "Gaming 🎮" ;;
-        *) echo "Unknown" ;;
-    esac
-}
-
-# Monitor and maintain mode
-monitor_mode() {
-    while true; do
-        . ${CONFIG_SH} 2>/dev/null
-        
-        if [ -f ${CONFIG_FILE} ]; then
-            TARGET=$(cat ${CONFIG_FILE})
-        else
-            TARGET=${config_thermal_mode}
-            echo ${TARGET} > ${CONFIG_FILE}
+# دالة إعادة ضبط ترددات المعالج للوضع الحر
+reset_frequencies() {
+    for cpu in /sys/devices/system/cpu/cpu*/cpufreq; do
+        if [ -d "$cpu" ]; then
+            chmod 644 "$cpu/scaling_min_freq" "$cpu/scaling_max_freq" 2>/dev/null
+            cat "$cpu/cpuinfo_min_freq" > "$cpu/scaling_min_freq" 2>/dev/null
+            cat "$cpu/cpuinfo_max_freq" > "$cpu/scaling_max_freq" 2>/dev/null
+            echo "schedutil" > "$cpu/scaling_governor" 2>/dev/null
         fi
-        
-        if [ ${config_auto_battery_saver:-0} -eq 1 ] && [ "$(is_screen_on)" = "0" ]; then
-            apply_mode 1
-        else
-            CURRENT=$(get_mode)
-            if [ "${CURRENT}" != "${TARGET}" ]; then
-                apply_mode ${TARGET}
-            fi
-        fi
-        
-        sleep 1
     done
 }
 
-# Start monitoring in background
-monitor_mode &
-echo $! > ${PID_FILE}
+# دالة محرك الرسوميات لميديا تيك
+set_gpu_boost() {
+    local val=$1
+    [ -f /sys/module/ged/parameters/gx_game_mode ] && echo "$val" > /sys/module/ged/parameters/gx_game_mode
+    [ -f /sys/module/ged/parameters/boost_gpu_enable ] && echo "$val" > /sys/module/ged/parameters/boost_gpu_enable
+    [ -f /sys/module/ged/parameters/gx_force_cpu_boost ] && echo "$val" > /sys/module/ged/parameters/gx_force_cpu_boost
+}
 
-# Wait for boot completion
-until [ "$(getprop sys.boot_completed)" = "1" ]; do
-    sleep 1
-done
+set_profile() {
+    case "$1" in
+        "gaming"|"19")
+            pm disable-user --user 0 com.samsung.android.game.gos >/dev/null 2>&1
+            pm disable-user --user 0 com.samsung.android.game.gametools >/dev/null 2>&1
+            setprop persist.sys.thermal.screen 0
+            
+            reset_frequencies
+            set_gpu_boost 1
 
-# Post-boot initialization
-sleep 3
+            # رفع الحد الأدنى للأنوية Cortex-X4 إلى 1.8GHz لمنع تساقط الفريمات
+            for cpu in /sys/devices/system/cpu/cpu[4-7]/cpufreq; do
+                [ -d "$cpu" ] && echo "1800000" > "$cpu/scaling_min_freq" 2>/dev/null
+            done
+            ;;
 
-# Apply initial mode
-if [ ! -f ${CONFIG_FILE} ]; then
-    echo ${config_thermal_mode} > ${CONFIG_FILE}
-fi
+        "performance"|"6")
+            pm disable-user --user 0 com.samsung.android.game.gos >/dev/null 2>&1
+            setprop persist.sys.thermal.screen 0
+            
+            reset_frequencies
+            set_gpu_boost 1
+            ;;
 
-apply_mode $(cat ${CONFIG_FILE})
+        "battery"|"1")
+            pm enable com.samsung.android.game.gos >/dev/null 2>&1
+            setprop persist.sys.thermal.screen 1
+            set_gpu_boost 0
 
-# Update module description
-if [ -f ${THERMAL_PATH} ]; then
-    CURRENT=$(get_mode)
-    MODE_NAME=$(get_mode_name ${CURRENT})
-    
-    if [ -f ${PID_FILE} ]; then
-        PID=$(cat ${PID_FILE})
-        if kill -0 ${PID} 2>/dev/null; then
-            string="description=status: active ✅ | mode: ${MODE_NAME}"
-        else
-            string="description=status: ready 🚀 | mode: ${MODE_NAME}"
+            # تقييد الأنوية الكبرى إلى 1.4GHz لتوفير الشحن
+            for cpu in /sys/devices/system/cpu/cpu[4-7]/cpufreq; do
+                if [ -d "$cpu" ]; then
+                    echo "1400000" > "$cpu/scaling_max_freq" 2>/dev/null
+                    echo "powersave" > "$cpu/scaling_governor" 2>/dev/null
+                fi
+            done
+            ;;
+
+        "balanced"|"0"|*)
+            pm enable com.samsung.android.game.gos >/dev/null 2>&1
+            setprop persist.sys.thermal.screen 1
+            set_gpu_boost 0
+            reset_frequencies
+            ;;
+    esac
+
+    # تحديث بطاقة التعريف
+    [ -f "$MODDIR/update-desc.sh" ] && sh "$MODDIR/update-desc.sh" "$1"
+}
+
+# المراقبة الدورية لتطبيق الأنماط
+LAST_MODE=""
+while true; do
+    echo $$ > "$MODDIR/service.pid"
+    CURRENT_MODE=$(cat "$MODDIR/mode" 2>/dev/null)
+    AUTO_BAT=$(cat "$MODDIR/auto_battery" 2>/dev/null)
+    SCREEN_ON=$(dumpsys power | grep -q "mWakefulness=Awake" && echo "1" || echo "0")
+
+    if [ "$AUTO_BAT" = "1" ] && [ "$SCREEN_ON" = "0" ]; then
+        if [ "$LAST_MODE" != "screen_off_battery" ]; then
+            set_profile "battery"
+            LAST_MODE="screen_off_battery"
         fi
     else
-        string="description=status: ready 🚀 | mode: ${MODE_NAME}"
+        if [ "$CURRENT_MODE" != "$LAST_MODE" ]; then
+            set_profile "$CURRENT_MODE"
+            LAST_MODE="$CURRENT_MODE"
+        fi
     fi
-else
-    string="description=status: failed 😭 | interface not found"
-    touch ${MODDIR}/disable
-fi
-
-if [ -f ${MODDIR}/module.prop ]; then
-    sed "s/^description=.*/${string}/g" ${MODDIR}/module.prop > ${MODDIR}/module.prop.tmp
-    grep -q "^description=" ${MODDIR}/module.prop.tmp && cat ${MODDIR}/module.prop.tmp > ${MODDIR}/module.prop
-    rm -f ${MODDIR}/module.prop.tmp
-fi
+    sleep 4
+done

@@ -3,4 +3,4 @@ name=IFOKNR - Thermal Manager
 version=v2.0-TabS10U
 versionCode=201
 author=ifoknr (Forked from Ahmed Al-Nassif)
-description=Optimized Thermal & Performance Controller for Samsung Galaxy Tab S10 Ultra (Dimensity 9300+).
+description=Custom fork for Samsung Galaxy Tab S10 Ultra (Dimensity 9300+). Current: ⚖️ [Balanced]

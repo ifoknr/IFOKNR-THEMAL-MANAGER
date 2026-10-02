@@ -1,69 +1,31 @@
 @import url('https://mui.kernelsu.org/internal/insets.css');
 @import url('https://mui.kernelsu.org/internal/colors.css');
 
-/* ========================================================
-   CYBERPUNK / NEON HUD THEME - IFOKNR THERMAL MANAGER
-   Optimized for AMOLED & Samsung Galaxy Tab S10 Ultra
-   ======================================================== */
-
 :root {
     --top-inset: var(--window-inset-top, 0px);
     --bottom-inset: var(--window-inset-bottom, 0px);
-    --md-focus-ring-color: #00000000;
 
-    /* درجات النيون المخصصة */
     --neon-cyan: #00f0ff;
     --neon-pink: #ff0055;
     --neon-green: #00ff88;
-    --neon-yellow: #ffe600;
     --bg-dark: #030508;
-    --card-surface: rgba(10, 15, 25, 0.88);
+    --card-surface: rgba(12, 18, 30, 0.9);
     --card-border: rgba(0, 240, 255, 0.22);
     --glow-cyan: 0 0 16px rgba(0, 240, 255, 0.35);
     --glow-pink: 0 0 16px rgba(255, 0, 85, 0.35);
 
-    /* إعادة ضبط متغيرات Material لتطابق نمط السايبر */
     --md-sys-color-primary: var(--neon-cyan);
     --md-sys-color-on-primary: #020710;
     --md-sys-color-primary-container: rgba(0, 240, 255, 0.16);
-    --md-sys-color-on-primary-container: #ffffff;
-    
-    --md-sys-color-secondary: var(--neon-pink);
-    --md-sys-color-on-secondary: #ffffff;
-    --md-sys-color-secondary-container: rgba(255, 0, 85, 0.16);
-    --md-sys-color-on-secondary-container: #ff99bb;
-
-    --md-sys-color-tertiary: var(--neon-green);
-    --md-sys-color-on-tertiary: #020710;
-    --md-sys-color-tertiary-container: rgba(0, 255, 136, 0.14);
-    --md-sys-color-on-tertiary-container: var(--neon-green);
-
-    --md-sys-color-error: #ff3344;
-    --md-sys-color-on-error: #ffffff;
-    --md-sys-color-error-container: rgba(255, 51, 68, 0.18);
-    --md-sys-color-on-error-container: #ff6677;
-
-    --md-sys-color-background: var(--bg-dark);
-    --md-sys-color-on-background: #e6f1ff;
     --md-sys-color-surface: var(--bg-dark);
     --md-sys-color-on-surface: #e6f1ff;
-    --md-sys-color-surface-container-lowest: #070a12;
-    --md-sys-color-surface-container: #0d131f;
-    --md-sys-color-surface-container-high: #131c2d;
-    --md-sys-color-outline: rgba(0, 240, 255, 0.25);
     --md-sys-color-outline-variant: rgba(255, 255, 255, 0.08);
 
-    /* ألوان مكونات Material المدمجة */
     --md-switch-selected-handle-color: var(--neon-cyan);
     --md-switch-selected-track-color: rgba(0, 240, 255, 0.35);
-    --md-switch-unselected-track-color: #121824;
     --md-filled-button-container-color: rgba(0, 240, 255, 0.12);
     --md-filled-button-label-text-color: var(--neon-cyan);
 }
-
-/* ========================================================
-   بنية الصفحة الأساسية
-   ======================================================== */
 
 body {
     padding-top: var(--top-inset);
@@ -73,13 +35,8 @@ body {
     width: 100%;
     flex-direction: column;
     background-color: var(--bg-dark);
-    background-image: 
-        radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.07) 0%, transparent 60%),
-        linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
-    background-size: 100% 100%, 32px 32px, 32px 32px;
     color: var(--md-sys-color-on-surface);
-    font-family: 'Segoe UI', -apple-system, Roboto, system-ui, sans-serif;
+    font-family: 'Segoe UI', -apple-system, Roboto, sans-serif;
     -webkit-tap-highlight-color: transparent;
 }
 
@@ -91,10 +48,6 @@ body {
     box-sizing: border-box;
 }
 
-/* ========================================================
-   شريط الرأس (Header)
-   ======================================================== */
-
 .header {
     display: flex;
     flex-direction: column;
@@ -103,8 +56,8 @@ body {
     width: 100%;
     min-height: 80px;
     padding: 16px 12px 10px;
-    box-sizing: border-box;
     text-align: center;
+    box-sizing: border-box;
 }
 
 .title {
@@ -116,13 +69,7 @@ body {
     text-shadow: 0 0 10px var(--neon-cyan), 0 0 25px rgba(0, 240, 255, 0.45);
 }
 
-.preload-hidden {
-    display: none;
-}
-
-/* ========================================================
-   عناوين وحاويات الإعدادات (Settings Groups)
-   ======================================================== */
+.preload-hidden { display: none; }
 
 .settings-group-title {
     padding: 16px 8px 8px;
@@ -131,15 +78,6 @@ body {
     letter-spacing: 1.8px;
     text-transform: uppercase;
     color: var(--neon-cyan);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.settings-group-title::before {
-    content: '//';
-    color: var(--neon-pink);
-    font-weight: 900;
 }
 
 .settings-group {
@@ -152,7 +90,6 @@ body {
     border: 1px solid var(--card-border);
     background-color: var(--card-surface);
     backdrop-filter: blur(14px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
 }
 
 .list-item {
@@ -160,35 +97,18 @@ body {
     padding: 14px 16px;
 }
 
-/* ========================================================
-   بطاقة النمط الحالي (Current Mode Box)
-   ======================================================== */
-
 .current-mode-box {
     background: linear-gradient(135deg, rgba(0, 240, 255, 0.12) 0%, rgba(255, 0, 85, 0.12) 100%);
     border: 1px solid var(--neon-cyan);
-    padding: 26px 16px;
+    padding: 24px 16px;
     border-radius: 14px;
     text-align: center;
     box-shadow: var(--glow-cyan);
-    position: relative;
-    overflow: hidden;
-}
-
-.current-mode-box::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 20%;
-    width: 60%;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
 }
 
 .current-mode-icon {
     font-size: 56px;
     filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.6));
-    margin-bottom: 6px;
 }
 
 .current-mode-name {
@@ -200,25 +120,16 @@ body {
     text-shadow: 0 0 12px var(--neon-cyan);
 }
 
-/* ========================================================
-   شبكة اختيار الأنماط (Mode Grid)
-   ======================================================== */
-
 .mode-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
     background: transparent;
     border: none;
-    box-shadow: none;
-    padding: 0;
 }
 
-/* عند عرض الصفحة على شاشة تابلت واسعة، تتحول الأنماط لـ 4 أعمدة في صف واحد */
 @media (min-width: 640px) {
-    .mode-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
+    .mode-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 .mode-card {
@@ -228,50 +139,17 @@ body {
     padding: 18px 12px;
     text-align: center;
     cursor: pointer;
-    overflow: hidden;
-    position: relative;
-    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(10px);
+    transition: all 0.22s ease;
 }
 
-.mode-card:hover {
-    border-color: var(--neon-cyan);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 14px rgba(0, 240, 255, 0.25);
-}
-
-.mode-card:active {
-    transform: scale(0.96);
-}
-
-/* المربع المختار والنشط حالياً */
 .mode-card.active {
     border-color: var(--neon-pink);
     background: rgba(255, 0, 85, 0.14);
     box-shadow: var(--glow-pink);
 }
 
-.mode-card.active .mode-card-title {
-    color: #ffffff;
-    text-shadow: 0 0 10px var(--neon-pink);
-    font-weight: 700;
-}
-
-.mode-card-icon {
-    font-size: 34px;
-    margin-bottom: 6px;
-}
-
-.mode-card-title {
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    color: var(--md-sys-color-on-surface);
-}
-
-/* ========================================================
-   قسم الحالة (Status)
-   ======================================================== */
+.mode-card-icon { font-size: 34px; margin-bottom: 6px; }
+.mode-card-title { font-size: 15px; font-weight: 600; }
 
 .status-row {
     display: flex;
@@ -280,70 +158,39 @@ body {
     padding: 12px 4px;
 }
 
-.status-row:first-child {
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
-}
+.status-row:first-child { border-bottom: 1px solid var(--md-sys-color-outline-variant); }
 
 .status-badge {
     padding: 5px 14px;
     border-radius: 6px;
     font-size: 12px;
     font-weight: 700;
-    letter-spacing: 1px;
     text-transform: uppercase;
     background-color: #121824;
     border: 1px solid var(--card-border);
 }
 
 .status-badge.active {
-    background-color: rgba(0, 255, 136, 0.15) !important;
     border-color: var(--neon-green) !important;
     color: var(--neon-green) !important;
     box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
 }
 
 .status-badge.inactive {
-    background-color: rgba(255, 0, 85, 0.15) !important;
     border-color: var(--neon-pink) !important;
     color: var(--neon-pink) !important;
-    box-shadow: 0 0 10px rgba(255, 0, 85, 0.3);
-}
-
-/* ========================================================
-   خيارات التبديل التلقائي (Auto Mode Toggle)
-   ======================================================== */
-
-md-switch {
-    pointer-events: all;
 }
 
 .toggle-option {
     font-size: 1.05rem;
     font-weight: 600;
-    min-height: 36px;
-    padding: 6px 4px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    user-select: none;
     gap: 12px;
-    pointer-events: none;
 }
 
-.toggle-option-content {
-    font-size: 0.85rem;
-    padding: 2px 4px 6px;
-    color: #8c9cb0;
-}
-
-.toggle-info {
-    font-size: 0.85rem;
-    color: #8c9cb0;
-}
-
-/* ========================================================
-   أزرار الإجراءات (Action Buttons)
-   ======================================================== */
+.toggle-info { font-size: 0.85rem; color: #8c9cb0; }
 
 .custom-buttons {
     display: flex;
@@ -351,24 +198,11 @@ md-switch {
     padding: 12px;
 }
 
-.custom-buttons > * {
-    flex: 1;
-}
+.custom-buttons > * { flex: 1; }
 
 md-filled-button {
     border: 1px solid var(--neon-cyan) !important;
     border-radius: 8px !important;
     font-weight: 700 !important;
-    letter-spacing: 1px !important;
     text-transform: uppercase !important;
-    box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
-    transition: all 0.2s ease;
-}
-
-md-filled-button:hover {
-    box-shadow: var(--glow-cyan);
-}
-
-md-filled-button:active {
-    transform: scale(0.98);
 }
