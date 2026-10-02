@@ -1,6 +1,6 @@
 # IFOKNR - Thermal Manager
 <p align="center">
-  <img src="./banner.jpg" alt="IFOKNR - Thermal Manager" width="100%">
+  <img src="./banner.png" alt="IFOKNR - Thermal Manager" width="100%">
 </p>
 
 
