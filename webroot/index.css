@@ -1,209 +1,283 @@
 @import url('https://mui.kernelsu.org/internal/insets.css');
 @import url('https://mui.kernelsu.org/internal/colors.css');
 
+/* ========================================================
+   CYBERPUNK / NEON HUD THEME - IFOKNR THERMAL MANAGER
+   Optimized for AMOLED & Samsung Galaxy Tab S10 Ultra
+   ======================================================== */
+
 :root {
     --top-inset: var(--window-inset-top, 0px);
     --bottom-inset: var(--window-inset-bottom, 0px);
-
     --md-focus-ring-color: #00000000;
 
-    --md-sys-color-primary: var(--primary, #6750A4);
-    --md-sys-color-on-primary: var(--onPrimary, #FFFFFF);
-    --md-sys-color-primary-container: var(--primaryContainer, #EADDFF);
-    --md-sys-color-on-primary-container: var(--onPrimaryContainer, #4F378B);
-    --md-sys-color-secondary: var(--secondary, #625B71);
-    --md-sys-color-on-secondary: var(--onSecondary, #FFFFFF);
-    --md-sys-color-secondary-container: var(--secondaryContainer, #E8DEF8);
-    --md-sys-color-on-secondary-container: var(--on-secondaryContainer, #4A4458);
-    --md-sys-color-tertiary: var(--tertiary, #7D5260);
-    --md-sys-color-on-tertiary: var(--onTertiary, #FFFFFF);
-    --md-sys-color-tertiary-container: var(--tertiaryContainer, #FFD8E4);
-    --md-sys-color-on-tertiary-container: var(--onTertiaryContainer, #633B48);
-    --md-sys-color-error: var(--error, #B3261E);
-    --md-sys-color-on-error: var(--onError, #FFFFFF);
-    --md-sys-color-error-container: var(--errorContainer, #F9DEDC);
-    --md-sys-color-on-error-container: var(--onErrorContainer, #8C1D18);
-    --md-sys-color-background: var(--background, #FEF7FF);
-    --md-sys-color-on-background: var(--onBackground, #1D1B20);
-    --md-sys-color-surface: var(--surface, #FEF7FF);
-    --md-sys-color-on-surface: var(--onSurface, #1D1B20);
-    --md-sys-color-surface-variant: var(--surfaceVariant, #E7E0EC);
-    --md-sys-color-on-surface-variant: var(--onSurfaceVariant, #49454F);
-    --md-sys-color-outline: var(--outline, #79747E);
-    --md-sys-color-outline-variant: var(--outlineVariant, #CAC4D0);
-    --md-sys-color-shadow: var(--shadow, #000000);
-    --md-sys-color-inverse-surface: var(--inverseSurface, #322F35);
-    --md-sys-color-inverse-on-surface: var(--inverseOnSurface, #F5EFF7);
-    --md-sys-color-inverse-primary: var(--inversePrimary, #D0BCFF);
-    --md-sys-color-surface-bright: var(--surfaceBright, #FEF7FF);
-    --md-sys-color-surface-dim: var(--surfaceDim, #DED8E1);
-    --md-sys-color-tonal-surface: var(--tonalSurface, #F3EDF7);
-    --md-sys-color-surface-container: var(--surfaceContainer, #F3EDF7);
-    --md-sys-color-surface-container-lowest: var(--surfaceContainerLowest, #FFFFFF);
-    --md-sys-color-surface-container-low: var(--surfaceContainerLow, #F7F2FA);
-    --md-sys-color-surface-container-high: var(--surfaceContainerHigh, #ECE6F0);
-    --md-sys-color-surface-container-highest: var(--surfaceContainerHighest, #E6E0E9);
+    /* درجات النيون المخصصة */
+    --neon-cyan: #00f0ff;
+    --neon-pink: #ff0055;
+    --neon-green: #00ff88;
+    --neon-yellow: #ffe600;
+    --bg-dark: #030508;
+    --card-surface: rgba(10, 15, 25, 0.88);
+    --card-border: rgba(0, 240, 255, 0.22);
+    --glow-cyan: 0 0 16px rgba(0, 240, 255, 0.35);
+    --glow-pink: 0 0 16px rgba(255, 0, 85, 0.35);
+
+    /* إعادة ضبط متغيرات Material لتطابق نمط السايبر */
+    --md-sys-color-primary: var(--neon-cyan);
+    --md-sys-color-on-primary: #020710;
+    --md-sys-color-primary-container: rgba(0, 240, 255, 0.16);
+    --md-sys-color-on-primary-container: #ffffff;
+    
+    --md-sys-color-secondary: var(--neon-pink);
+    --md-sys-color-on-secondary: #ffffff;
+    --md-sys-color-secondary-container: rgba(255, 0, 85, 0.16);
+    --md-sys-color-on-secondary-container: #ff99bb;
+
+    --md-sys-color-tertiary: var(--neon-green);
+    --md-sys-color-on-tertiary: #020710;
+    --md-sys-color-tertiary-container: rgba(0, 255, 136, 0.14);
+    --md-sys-color-on-tertiary-container: var(--neon-green);
+
+    --md-sys-color-error: #ff3344;
+    --md-sys-color-on-error: #ffffff;
+    --md-sys-color-error-container: rgba(255, 51, 68, 0.18);
+    --md-sys-color-on-error-container: #ff6677;
+
+    --md-sys-color-background: var(--bg-dark);
+    --md-sys-color-on-background: #e6f1ff;
+    --md-sys-color-surface: var(--bg-dark);
+    --md-sys-color-on-surface: #e6f1ff;
+    --md-sys-color-surface-container-lowest: #070a12;
+    --md-sys-color-surface-container: #0d131f;
+    --md-sys-color-surface-container-high: #131c2d;
+    --md-sys-color-outline: rgba(0, 240, 255, 0.25);
+    --md-sys-color-outline-variant: rgba(255, 255, 255, 0.08);
+
+    /* ألوان مكونات Material المدمجة */
+    --md-switch-selected-handle-color: var(--neon-cyan);
+    --md-switch-selected-track-color: rgba(0, 240, 255, 0.35);
+    --md-switch-unselected-track-color: #121824;
+    --md-filled-button-container-color: rgba(0, 240, 255, 0.12);
+    --md-filled-button-label-text-color: var(--neon-cyan);
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --md-sys-color-primary: var(--primary, #D0BCFF);
-        --md-sys-color-on-primary: var(--onPrimary, #381E72);
-        --md-sys-color-primary-container: var(--primaryContainer, #4F378B);
-        --md-sys-color-on-primary-container: var(--onPrimaryContainer, #EADDFF);
-        --md-sys-color-secondary: var(--secondary, #CCC2DC);
-        --md-sys-color-on-secondary: var(--onSecondary, #332D41);
-        --md-sys-color-secondary-container: var(--secondaryContainer, #4A4458);
-        --md-sys-color-on-secondary-container: var(--onSecondaryContainer, #E8DEF8);
-        --md-sys-color-tertiary: var(--tertiary, #EFB8C8);
-        --md-sys-color-on-tertiary: var(--onTertiary, #492532);
-        --md-sys-color-tertiary-container: var(--tertiaryContainer, #633B48);
-        --md-sys-color-on-tertiary-container: var(--onTertiaryContainer, #FFD8E4);
-        --md-sys-color-error: var(--error, #F2B8B5);
-        --md-sys-color-on-error: var(--onError, #601410);
-        --md-sys-color-error-container: var(--errorContainer, #8C1D18);
-        --md-sys-color-on-error-container: var(--onErrorContainer, #F9DEDC);
-        --md-sys-color-background: var(--background, #141218);
-        --md-sys-color-on-background: var(--onBackground, #E6E0E9);
-        --md-sys-color-surface: var(--surface, #141218);
-        --md-sys-color-on-surface: var(--onSurface, #E6E0E9);
-        --md-sys-color-surface-variant: var(--surfaceVariant, #49454F);
-        --md-sys-color-on-surface-variant: var(--onSurfaceVariant, #CAC4D0);
-        --md-sys-color-outline: var(--outline, #938F99);
-        --md-sys-color-outline-variant: var(--outlineVariant, #49454F);
-        --md-sys-color-shadow: var(--shadow, #000000);
-        --md-sys-color-inverse-surface: var(--inverseSurface, #E6E0E9);
-        --md-sys-color-inverse-on-surface: var(--inverseOnSurface, #322F35);
-        --md-sys-color-inverse-primary: var(--inversePrimary, #6750A4);
-        --md-sys-color-surface-bright: var(--surfaceBright, #3B383E);
-        --md-sys-color-surface-dim: var(--surfaceDim, #141218);
-        --md-sys-color-tonal-surface: var(--tonalSurface, #211F26);
-        --md-sys-color-surface-container: var(--surfaceContainer, #211F26);
-        --md-sys-color-surface-container-lowest: var(--surfaceContainerLowest, #0F0D13);
-        --md-sys-color-surface-container-low: var(--surfaceContainerLow, #1D1B20);
-        --md-sys-color-surface-container-high: var(--surfaceContainerHigh, #2B2930);
-        --md-sys-color-surface-container-highest: var(--surfaceContainerHighest, #36343B);
-    }
-}
-
+/* ========================================================
+   بنية الصفحة الأساسية
+   ======================================================== */
 
 body {
     padding-top: var(--top-inset);
-    padding-bottom: calc(var(--bottom-inset) + 32px);
+    padding-bottom: calc(var(--bottom-inset) + 36px);
     margin: 0;
     display: flex;
     width: 100%;
     flex-direction: column;
-    background-color: var(--md-sys-color-surface);
+    background-color: var(--bg-dark);
+    background-image: 
+        radial-gradient(circle at 50% 0%, rgba(0, 240, 255, 0.07) 0%, transparent 60%),
+        linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+    background-size: 100% 100%, 32px 32px, 32px 32px;
     color: var(--md-sys-color-on-surface);
-    font-family: Roboto, system-ui, sans-serif;
+    font-family: 'Segoe UI', -apple-system, Roboto, system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .body-content {
     width: 100%;
-    max-width: 768px;
+    max-width: 820px;
     margin: 0 auto;
+    padding: 0 16px;
     box-sizing: border-box;
 }
 
-.list-item {
-    background-color: var(--md-sys-color-surface-container-lowest);
-    border-radius: 4px;
-    padding: 10px;
-}
-
-.settings-group {
-    margin-bottom: 20px;
-    border-radius: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    overflow: hidden;
-}
-
-.settings-group-title {
-    padding: 10px 10px;
-    font-size: 1.6em;
-    font-weight: 600;
-    color: var(--md-sys-color-primary);
-}
+/* ========================================================
+   شريط الرأس (Header)
+   ======================================================== */
 
 .header {
     display: flex;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
     width: 100%;
-    height: 64px;
-    padding: 0px 10px;
+    min-height: 80px;
+    padding: 16px 12px 10px;
     box-sizing: border-box;
+    text-align: center;
 }
 
 .title {
-    font-size: 2em;
-    font-weight: 500;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 0 0 10px var(--neon-cyan), 0 0 25px rgba(0, 240, 255, 0.45);
 }
 
 .preload-hidden {
     display: none;
 }
 
-/* Current Mode */
+/* ========================================================
+   عناوين وحاويات الإعدادات (Settings Groups)
+   ======================================================== */
+
+.settings-group-title {
+    padding: 16px 8px 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    color: var(--neon-cyan);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.settings-group-title::before {
+    content: '//';
+    color: var(--neon-pink);
+    font-weight: 900;
+}
+
+.settings-group {
+    margin-bottom: 20px;
+    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+    border: 1px solid var(--card-border);
+    background-color: var(--card-surface);
+    backdrop-filter: blur(14px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+.list-item {
+    background-color: transparent;
+    padding: 14px 16px;
+}
+
+/* ========================================================
+   بطاقة النمط الحالي (Current Mode Box)
+   ======================================================== */
+
 .current-mode-box {
-    background: linear-gradient(135deg, var(--md-sys-color-primary-container), var(--md-sys-color-tertiary-container));
-    padding: 24px;
-    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(0, 240, 255, 0.12) 0%, rgba(255, 0, 85, 0.12) 100%);
+    border: 1px solid var(--neon-cyan);
+    padding: 26px 16px;
+    border-radius: 14px;
     text-align: center;
+    box-shadow: var(--glow-cyan);
+    position: relative;
+    overflow: hidden;
+}
+
+.current-mode-box::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 20%;
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
 }
 
 .current-mode-icon {
-    font-size: 64px;
+    font-size: 56px;
+    filter: drop-shadow(0 0 12px rgba(0, 240, 255, 0.6));
+    margin-bottom: 6px;
 }
 
 .current-mode-name {
-    font-size: 28px;
-    font-weight: 600;
-    color: var(--md-sys-color-on-primary-container);
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 0 0 12px var(--neon-cyan);
 }
 
-/* Mode Grid */
+/* ========================================================
+   شبكة اختيار الأنماط (Mode Grid)
+   ======================================================== */
+
 .mode-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 12px;
     background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+/* عند عرض الصفحة على شاشة تابلت واسعة، تتحول الأنماط لـ 4 أعمدة في صف واحد */
+@media (min-width: 640px) {
+    .mode-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
 
 .mode-card {
-    background-color: var(--md-sys-color-surface-container-lowest);
-    border-radius: 16px;
-    padding: 16px;
+    background-color: var(--card-surface);
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    border-radius: 12px;
+    padding: 18px 12px;
     text-align: center;
     cursor: pointer;
-    border: 2px solid transparent;
     overflow: hidden;
     position: relative;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(10px);
 }
 
+.mode-card:hover {
+    border-color: var(--neon-cyan);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 240, 255, 0.25);
+}
+
+.mode-card:active {
+    transform: scale(0.96);
+}
+
+/* المربع المختار والنشط حالياً */
 .mode-card.active {
-    border-color: var(--md-sys-color-primary);
-    background-color: var(--md-sys-color-primary-container);
+    border-color: var(--neon-pink);
+    background: rgba(255, 0, 85, 0.14);
+    box-shadow: var(--glow-pink);
+}
+
+.mode-card.active .mode-card-title {
+    color: #ffffff;
+    text-shadow: 0 0 10px var(--neon-pink);
+    font-weight: 700;
 }
 
 .mode-card-icon {
-    font-size: 36px;
+    font-size: 34px;
+    margin-bottom: 6px;
 }
 
 .mode-card-title {
-    font-size: 16px;
-    font-weight: 500;
-    margin-top: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--md-sys-color-on-surface);
 }
 
-/* Status */
+/* ========================================================
+   قسم الحالة (Status)
+   ======================================================== */
+
 .status-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 0;
+    padding: 12px 4px;
 }
 
 .status-row:first-child {
@@ -211,65 +285,90 @@ body {
 }
 
 .status-badge {
-    padding: 4px 12px;
-    border-radius: 100px;
-    font-size: 13px;
-    font-weight: 500;
-    background-color: var(--md-sys-color-surface-container-high);
+    padding: 5px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    background-color: #121824;
+    border: 1px solid var(--card-border);
 }
 
 .status-badge.active {
-    background-color: var(--md-sys-color-tertiary-container);
-    color: var(--md-sys-color-on-tertiary-container);
+    background-color: rgba(0, 255, 136, 0.15) !important;
+    border-color: var(--neon-green) !important;
+    color: var(--neon-green) !important;
+    box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
 }
 
 .status-badge.inactive {
-    background-color: var(--md-sys-color-error-container);
-    color: var(--md-sys-color-on-error-container);
+    background-color: rgba(255, 0, 85, 0.15) !important;
+    border-color: var(--neon-pink) !important;
+    color: var(--neon-pink) !important;
+    box-shadow: 0 0 10px rgba(255, 0, 85, 0.3);
 }
 
-/* Buttons */
+/* ========================================================
+   خيارات التبديل التلقائي (Auto Mode Toggle)
+   ======================================================== */
+
+md-switch {
+    pointer-events: all;
+}
+
+.toggle-option {
+    font-size: 1.05rem;
+    font-weight: 600;
+    min-height: 36px;
+    padding: 6px 4px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    user-select: none;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.toggle-option-content {
+    font-size: 0.85rem;
+    padding: 2px 4px 6px;
+    color: #8c9cb0;
+}
+
+.toggle-info {
+    font-size: 0.85rem;
+    color: #8c9cb0;
+}
+
+/* ========================================================
+   أزرار الإجراءات (Action Buttons)
+   ======================================================== */
+
 .custom-buttons {
     display: flex;
-    gap: 8px;
+    gap: 12px;
+    padding: 12px;
 }
 
 .custom-buttons > * {
     flex: 1;
 }
 
-@media (max-width: 600px) {
-    .mode-grid {
-        grid-template-columns: 1fr;
-    }
+md-filled-button {
+    border: 1px solid var(--neon-cyan) !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1px !important;
+    text-transform: uppercase !important;
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+    transition: all 0.2s ease;
 }
-md-switch {
-    pointer-events: all;
+
+md-filled-button:hover {
+    box-shadow: var(--glow-cyan);
 }
-.toggle-option {
-    font-size: 1.4em;
-    min-height: 32px;
-    padding: 10px 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    user-select: none;
-    gap: 8px;
-    pointer-events: none;
-}
-.toggle-option-content {
-    font-size: 1.2em;
-    min-height: 32px;
-    padding: 0px 10px;
-    padding-bottom: 8px;
-    display: block;
-    align-items: center;
-    justify-content: space-between;
-    user-select: none;
-    gap: 8px;
-}
-.toggle-info {
-    font-size: 0.8em;
-    padding-bottom: 4px;
-    color: var(--md-sys-color-outline);
+
+md-filled-button:active {
+    transform: scale(0.98);
 }
