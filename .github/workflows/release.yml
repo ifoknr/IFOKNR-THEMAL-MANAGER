@@ -1,47 +1,68 @@
-name: Build & Release Flashable Zip
+name: Build and Release Module
 
 on:
-  workflow_dispatch: # يتيح تشغيل البناء يدوياً بنقرة زر واحدة
   push:
-    tags:
-      - 'v*' # يعمل تلقائياً عند إنشاء Tag مثل v2.0
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Package Module Zip
-        id: package
+      - name: Read Module Info
+        id: mod_info
         run: |
-          # استخراج رقم الإصدار من ملف module.prop
-          VERSION=$(grep '^version=' module.prop | cut -d= -f2 | tr -d '\r')
-          [ -z "$VERSION" ] && VERSION="v2.0"
-          ZIP_NAME="IFOKNR-Thermal-Manager-${VERSION}.zip"
+          # استخراج البيانات من module.prop تلقائياً
+          MOD_ID=$(grep '^id=' module.prop | cut -d'=' -f2)
+          MOD_NAME=$(grep '^name=' module.prop | cut -d'=' -f2-)
+          MOD_VER=$(grep '^version=' module.prop | cut -d'=' -f2)
+          
+          # إعطاء قيمة افتراضية إذا لم يتم العثور عليها
+          MOD_ID=${MOD_ID:-"Thermal-Manager"}
+          MOD_VER=${MOD_VER:-"v1.0"}
+          
+          # إنشاء وسم فريد لتجنب خطأ التعديل على الإصدارات المغلقة
+          TAG_NAME="${MOD_VER}-b${{ github.run_number }}"
+          ZIP_NAME="${MOD_ID}-${MOD_VER}-b${{ github.run_number }}.zip"
+          
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "zip_name=${ZIP_NAME}" >> $GITHUB_OUTPUT
+          echo "release_name=${MOD_NAME} (${MOD_VER} Build ${{ github.run_number }})" >> $GITHUB_OUTPUT
 
-          # ضغط الملفات من الجذر مباشرة لضمان قبول التفليش في KernelSU/Magisk
-          zip -r9 "$ZIP_NAME" META-INF config.sh module.prop service.sh update-desc.sh webroot -x "*.git*" "*.github*" "README.md" "LICENSE"
+      - name: Package Module ZIP
+        run: |
+          # ضغط الملفات المطلوبة فقط وتجاهل ملفات Git
+          zip -r9 "${{ steps.mod_info.outputs.zip_name }}" . \
+            -x ".git/*" \
+            -x ".github/*" \
+            -x "*.md" \
+            -x ".gitignore"
 
-          echo "zip_name=$ZIP_NAME" >> $GITHUB_OUTPUT
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Publish to GitHub Releases
+      - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.package.outputs.version }}
-          name: "IFOKNR - Thermal Manager ${{ steps.package.outputs.version }}"
+          tag_name: ${{ steps.mod_info.outputs.tag_name }}
+          name: ${{ steps.mod_info.outputs.release_name }}
           body: |
-            ### 🚀 IFOKNR - Thermal Manager (S10 Ultra Edition)
-            - Optimized for Samsung Galaxy Tab S10 Ultra (MediaTek Dimensity 9300+).
-            - Pure Black AMOLED UI with Cyberpunk/Neon accents.
-            - Custom profiles: Battery, Balanced, Performance, and Gaming.
-            
-            **Flash via KernelSU / APatch / Magisk.**
-          files: ${{ steps.package.outputs.zip_name }}
+            ### 🚀 Automatic Release
+            - **الإصدار:** `${{ steps.mod_info.outputs.tag_name }}`
+            - **رقم البناء:** `${{ github.run_number }}`
+            - **التاريخ:** `${{ github.event.head_commit.timestamp }}`
+            - متوافق للتفليش عبر: **KernelSU / APatch / Magisk**
+          files: ${{ steps.mod_info.outputs.zip_name }}
           draft: false
           prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
