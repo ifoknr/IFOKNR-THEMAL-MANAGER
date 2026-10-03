@@ -1,0 +1,10 @@
+{
+  "id": "fast_charging_mod",
+  "enable": true,
+  "update_to": "https://github.com/username/fast_charging_mod/releases/latest/download/module.zip",
+  "changelog": "https://raw.githubusercontent.com/username/fast_charging_mod/main/changelog.md",
+  "source": "https://github.com/username/fast_charging_mod",
+  "support": "https://github.com/username/fast_charging_mod/issues",
+  "license": "GPL-3.0",
+  "antifeatures": []
+}
