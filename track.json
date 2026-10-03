@@ -1,8 +1,8 @@
 {
-  "id": "اthermal_mode_manager",
+  "id": "ifoknr_thermal_manager",
   "enable": true,
-  "source": "https://github.com/ifoknr/IFOKNR - Thermal Manager",
-  "support": "https://github.com/ifoknr/IFOKNR - Thermal Manager/issues",
+  "source": "https://github.com/ifoknr/IFOKNR-Thermal Manager",
+  "support": "https://github.com/ifoknr/IFOKNR-Thermal Manager/issues",
   "license": "GPL-3.0",
   "antifeatures": []
 }
