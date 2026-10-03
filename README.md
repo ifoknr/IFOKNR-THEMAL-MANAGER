@@ -1,6 +1,6 @@
 # NEXT - Thermal Manager
 <p align="center">
-  <img src="./banner.png" alt="IFOKNR - Thermal Manager" width="100%">
+  <img src="./icon.png" alt="IFOKNR - Thermal Manager" width="100%">
 </p>
 
 
