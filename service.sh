@@ -1,7 +1,10 @@
 #!/system/bin/sh
+# ThermalCore service: applies the selected profile, switches to the game
+# profile when a listed game is in the foreground, and keeps a thermal guard.
 MODDIR=${0%/*}
-LOG="$MODDIR/service.log"
-ORIG="$MODDIR/orig"
+CFG=/data/adb/thermalcore
+LOG="$CFG/service.log"
+ORIG="$CFG/orig"
 CPUFREQ=/sys/devices/system/cpu/cpufreq
 GED=/sys/module/ged/parameters
 
@@ -12,12 +15,16 @@ BIG_MIN_KHZ=2500000
 GAMING_FLOOR_KHZ=1800000
 BATTERY_CAP_KHZ=1400000
 
-# Thermal guard (Gaming only): above TEMP_LIMIT (deg C) the frequency floor is
-# dropped and Samsung GOS is re-enabled; it resumes at TEMP_LIMIT - TEMP_HYST.
+# Thermal guard (Gaming / Performance): above the limit (deg C) the boosts are
+# dropped and Samsung GOS is re-enabled; it resumes at limit - TEMP_HYST.
+# The limit is user-selectable but always clamped to TEMP_MIN..TEMP_MAX.
 TEMP_LIMIT_DEFAULT=75
+TEMP_MIN=60
+TEMP_MAX=85
 TEMP_HYST=7
 
-echo $$ > "$MODDIR/service.pid"
+mkdir -p "$CFG"
+echo $$ > "$CFG/service.pid"
 
 log() {
     echo "$(date '+%m-%d %H:%M:%S') $*" >> "$LOG"
@@ -26,16 +33,20 @@ log() {
 # Keep the log small
 [ -f "$LOG" ] && [ "$(wc -c < "$LOG")" -gt 65536 ] && : > "$LOG"
 
-# Wait for the system to finish booting
 until [ "$(getprop sys.boot_completed)" = "1" ]; do
     sleep 3
 done
 sleep 5
 
-# Base files
-[ ! -f "$MODDIR/mode" ] && echo "balanced" > "$MODDIR/mode"
-[ ! -f "$MODDIR/current_mode" ] && echo "0" > "$MODDIR/current_mode"
-[ ! -f "$MODDIR/auto_battery" ] && echo "0" > "$MODDIR/auto_battery"
+# Defaults (settings live outside the module dir so they survive updates)
+[ -f "$CFG/mode" ] || echo balanced > "$CFG/mode"
+[ -f "$CFG/auto_battery" ] || echo 0 > "$CFG/auto_battery"
+[ -f "$CFG/auto_game" ] || echo 1 > "$CFG/auto_game"
+[ -f "$CFG/game_mode" ] || echo gaming > "$CFG/game_mode"
+[ -f "$CFG/notify" ] || echo 0 > "$CFG/notify"
+[ -f "$CFG/temp_limit" ] || echo "$TEMP_LIMIT_DEFAULT" > "$CFG/temp_limit"
+[ -f "$CFG/games.txt" ] || : > "$CFG/games.txt"
+[ -f "$CFG/app_profiles" ] || : > "$CFG/app_profiles"
 
 PLATFORM="$(getprop ro.board.platform)"
 case "$PLATFORM" in
@@ -155,11 +166,13 @@ get_soc_temp() {
 }
 
 get_temp_limit() {
-    l=$(cat "$MODDIR/temp_limit" 2>/dev/null)
+    l=$(cat "$CFG/temp_limit" 2>/dev/null)
     case "$l" in
-        ''|*[!0-9]*) echo "$TEMP_LIMIT_DEFAULT" ;;
-        *) echo "$l" ;;
+        ''|*[!0-9]*) l=$TEMP_LIMIT_DEFAULT ;;
     esac
+    [ "$l" -lt "$TEMP_MIN" ] && l=$TEMP_MIN
+    [ "$l" -gt "$TEMP_MAX" ] && l=$TEMP_MAX
+    echo "$l"
 }
 
 # Gaming CPU floor on the big clusters only
@@ -173,7 +186,7 @@ apply_gaming_floor() {
 }
 
 set_profile() {
-    case "$(norm_mode "$1")" in
+    case "$1" in
         gaming)
             gos_disable all
             reset_frequencies
@@ -204,12 +217,46 @@ set_profile() {
             ;;
     esac
 
-    log "Profile applied: $(norm_mode "$1")"
+    log "Profile applied: $1"
     [ -f "$MODDIR/update-desc.sh" ] && sh "$MODDIR/update-desc.sh" "$1"
+}
+
+# Released state of the thermal guard: stock frequencies, no GPU boost, GOS on
+release_boost() {
+    reset_frequencies
+    set_gpu_boost 0
+    gos_enable
 }
 
 screen_is_on() {
     dumpsys power 2>/dev/null | grep -q "mWakefulness=Awake"
+}
+
+# Package of the focused window, e.g. "com.tencent.ig"
+foreground_pkg() {
+    dumpsys window 2>/dev/null | grep -m1 mCurrentFocus \
+        | sed -n 's/.* u[0-9]* \([^/ }]*\).*/\1/p'
+}
+
+is_game() {
+    [ -n "$1" ] && grep -qx "$1" "$CFG/games.txt" 2>/dev/null
+}
+
+# Per-app profile from app_profiles ("pkg=mode"), else the default game mode
+game_profile_for() {
+    p=$(grep -m1 "^$1=" "$CFG/app_profiles" 2>/dev/null | cut -d= -f2)
+    [ -n "$p" ] || p=$(cat "$CFG/game_mode" 2>/dev/null)
+    norm_mode "$p"
+}
+
+notify() {
+    [ "$(cat "$CFG/notify" 2>/dev/null)" = "1" ] || return 0
+    su -lp 2000 -c "cmd notification post -S bigtext -t 'ThermalCore' thermalcore '$1'" >/dev/null 2>&1
+}
+
+# Snapshot for the WebUI: effective profile, why, game package, guard state
+write_state() {
+    echo "$1|$2|$3|$4" > "$CFG/state"
 }
 
 # ------------------------------------------------------------------- main ---
@@ -220,43 +267,72 @@ if [ -z "$(big_policies)" ]; then
     log "No cpufreq policy >= ${BIG_MIN_KHZ} kHz found: CPU floor/cap will not be applied"
 fi
 if [ "$(get_soc_temp)" = "0" ]; then
-    log "No usable thermal zone found: Gaming thermal guard is inactive"
+    log "No usable thermal zone found: thermal guard is inactive"
 fi
 
 LAST_MODE=""
-GAME_HOT=0
+LAST_PKG=""
+HOT=0
 
 while true; do
-    CURRENT_MODE=$(norm_mode "$(cat "$MODDIR/mode" 2>/dev/null)")
-    AUTO_BAT=$(cat "$MODDIR/auto_battery" 2>/dev/null)
+    USER_MODE=$(norm_mode "$(cat "$CFG/mode" 2>/dev/null)")
+    EFFECTIVE="$USER_MODE"
+    SOURCE=manual
+    PKG=""
 
-    # dumpsys is expensive: only query the screen when the feature is enabled
-    EFFECTIVE="$CURRENT_MODE"
+    # dumpsys is expensive: only query when a feature that needs it is enabled
+    AUTO_BAT=$(cat "$CFG/auto_battery" 2>/dev/null)
+    AUTO_GAME=$(cat "$CFG/auto_game" 2>/dev/null)
+    SCREEN=on
     if [ "$AUTO_BAT" = "1" ] && ! screen_is_on; then
-        EFFECTIVE="battery"
+        SCREEN=off
+        EFFECTIVE=battery
+        SOURCE=screen_off
+    fi
+    if [ "$SCREEN" = "on" ] && [ "$AUTO_GAME" = "1" ]; then
+        FG=$(foreground_pkg)
+        if is_game "$FG"; then
+            PKG="$FG"
+            EFFECTIVE=$(game_profile_for "$FG")
+            SOURCE=game
+        fi
     fi
 
     if [ "$EFFECTIVE" != "$LAST_MODE" ]; then
-        GAME_HOT=0
+        HOT=0
         set_profile "$EFFECTIVE"
         LAST_MODE="$EFFECTIVE"
+        write_state "$EFFECTIVE" "$SOURCE" "$PKG" "$HOT"
+        if [ "$SOURCE" = "game" ]; then
+            notify "🎮 $EFFECTIVE for $PKG"
+        elif [ -n "$LAST_PKG" ]; then
+            notify "⚖️ Back to $EFFECTIVE"
+        fi
+        LAST_PKG="$PKG"
+    elif [ "$PKG" != "$LAST_PKG" ]; then
+        write_state "$EFFECTIVE" "$SOURCE" "$PKG" "$HOT"
+        LAST_PKG="$PKG"
     fi
 
-    # Thermal guard: Gaming only
-    if [ "$EFFECTIVE" = "gaming" ]; then
-        TEMP=$(get_soc_temp)
-        LIMIT=$(get_temp_limit)
-        if [ "$GAME_HOT" = "0" ] && [ "$TEMP" -ge "$LIMIT" ]; then
-            GAME_HOT=1
-            reset_frequencies
-            gos_enable
-            log "Thermal guard: ${TEMP}C >= ${LIMIT}C, Gaming floor released and GOS re-enabled"
-        elif [ "$GAME_HOT" = "1" ] && [ "$TEMP" -le $((LIMIT - TEMP_HYST)) ]; then
-            GAME_HOT=0
-            set_profile "gaming"
-            log "Thermal guard: ${TEMP}C, Gaming restored"
-        fi
-    fi
+    # Thermal guard for the boosted profiles
+    case "$EFFECTIVE" in
+        gaming|performance)
+            TEMP=$(get_soc_temp)
+            LIMIT=$(get_temp_limit)
+            if [ "$HOT" = "0" ] && [ "$TEMP" -ge "$LIMIT" ]; then
+                HOT=1
+                release_boost
+                write_state "$EFFECTIVE" "$SOURCE" "$PKG" "$HOT"
+                log "Thermal guard: ${TEMP}C >= ${LIMIT}C, boost released and GOS re-enabled"
+                notify "🌡️ ${TEMP}°C: boost paused"
+            elif [ "$HOT" = "1" ] && [ "$TEMP" -le $((LIMIT - TEMP_HYST)) ]; then
+                HOT=0
+                set_profile "$EFFECTIVE"
+                write_state "$EFFECTIVE" "$SOURCE" "$PKG" "$HOT"
+                log "Thermal guard: ${TEMP}C, $EFFECTIVE restored"
+            fi
+            ;;
+    esac
 
     sleep 5
 done

@@ -1,6 +1,7 @@
-id=thermal_mode_manager
-name=IFOKNR - Thermal Manager
-version=v2.1.1-TabS10U
-versionCode=203
-author=ifoknr (Forked from Ahmed Al-Nassif)
-description=Custom fork for Samsung Galaxy Tab S10 Ultra (Dimensity 9300+). Current: ⚖️ [Balanced]
+id=thermalcore
+name=ThermalCore
+version=v3.0.0
+versionCode=300
+author=ifoknr
+description=Performance profiles, auto game mode and thermal guard for Galaxy Tab S10 Ultra (Dimensity 9300+). Current: ⚖️ [Balanced]
+updateJson=https://raw.githubusercontent.com/ifoknr/IFOKNR-THEMAL-MANAGER/main/update.json

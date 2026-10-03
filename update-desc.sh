@@ -1,12 +1,11 @@
 #!/system/bin/sh
 MODDIR=${0%/*}
-MODE=$1
 
-case "$MODE" in
-    "gaming"|"19") ICON="🎮 [Gaming]" ;;
-    "performance"|"6") ICON="⚡ [Performance]" ;;
-    "battery"|"1") ICON="🔋 [Battery Saver]" ;;
-    "balanced"|"0"|*) ICON="⚖️ [Balanced]" ;;
+case "$1" in
+    gaming|19) ICON="🎮 [Gaming]" ;;
+    performance|6) ICON="⚡ [Performance]" ;;
+    battery|1) ICON="🔋 [Battery Saver]" ;;
+    *) ICON="⚖️ [Balanced]" ;;
 esac
 
-sed -i "s/^description=.*/description=Custom fork by ifoknr for Tab S10 Ultra. Current: $ICON/" "$MODDIR/module.prop"
+sed -i "s/^description=.*/description=Performance profiles, auto game mode and thermal guard for Galaxy Tab S10 Ultra (Dimensity 9300+). Current: $ICON/" "$MODDIR/module.prop"
