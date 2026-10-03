@@ -1,8 +1,8 @@
 {
-  "id": "اكتب_هنا_نفس_آيدي_الموديول",
+  "id": "اthermal_mode_manager",
   "enable": true,
-  "source": "https://github.com/حسابك/اسم_المشروع",
-  "support": "https://github.com/حسابك/اسم_المشروع/issues",
+  "source": "https://github.com/ifoknr/IFOKNR - Thermal Manager",
+  "support": "https://github.com/ifoknr/IFOKNR - Thermal Manager/issues",
   "license": "GPL-3.0",
   "antifeatures": []
 }
