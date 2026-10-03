@@ -4,4 +4,4 @@ version=v3.0.0
 versionCode=300
 author=ifoknr
 description=Performance profiles, auto game mode and thermal guard for Galaxy Tab S10 Ultra (Dimensity 9300+). Current: ⚖️ [Balanced]
-updateJson=https://raw.githubusercontent.com/ifoknr/IFOKNR-THEMAL-MANAGER/main/update.json
+updateJson=https://raw.githubusercontent.com/ifoknr/IFOKNR-THEMAL-MANAGER/dev/update.json

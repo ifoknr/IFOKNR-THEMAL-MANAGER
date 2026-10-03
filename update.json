@@ -2,5 +2,5 @@
   "version": "v3.0.0",
   "versionCode": 300,
   "zipUrl": "https://github.com/ifoknr/IFOKNR-THEMAL-MANAGER/releases/download/v3.0.0/ThermalCore-v3.0.0.zip",
-  "changelog": "https://raw.githubusercontent.com/ifoknr/IFOKNR-THEMAL-MANAGER/main/CHANGELOG.md"
+  "changelog": "https://raw.githubusercontent.com/ifoknr/IFOKNR-THEMAL-MANAGER/dev/CHANGELOG.md"
 }
