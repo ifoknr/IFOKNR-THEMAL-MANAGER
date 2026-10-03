@@ -21,13 +21,13 @@ const NAME_TO_KEY = {
 }
 
 async function updateStatus() {
-    // 1. فحص دعم العتاد لميديا تيك
-    const checkSoc = await exec(`[ -d /sys/class/thermal ] && echo "1" || echo "0"`)
-    const available = checkSoc.stdout.trim() === '1'
-    
+    // 1. Verify the real platform (Dimensity 9300/9300+ = mt6989)
+    const platform = (await exec(`getprop ro.board.platform`)).stdout.trim()
+    const available = platform.startsWith('mt6989')
+
     const interfaceEl = document.getElementById('interface-status')
     if (interfaceEl) {
-        interfaceEl.textContent = available ? 'Dimensity 9300+' : 'Not Available'
+        interfaceEl.textContent = available ? 'Dimensity 9300/9300+' : `Unsupported (${platform || 'unknown'})`
         interfaceEl.className = `status-badge ${available ? 'active' : 'inactive'}`
     }
 
