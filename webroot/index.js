@@ -386,7 +386,7 @@ async function loadApps() {
 // -------------------------------------------------------------- settings ---
 
 async function loadSettings() {
-    const out = await sh(`for f in auto_battery auto_game notify game_mode temp_limit; do echo "$f=$(cat ${CFG}/$f 2>/dev/null)"; done; echo "platform=$(getprop ro.board.platform)"; echo "version=$(grep '^version=' ${MODDIR}/module.prop | cut -d= -f2)"`)
+    const out = await sh(`for f in auto_battery auto_game notify game_mode temp_limit; do echo "$f=$(cat ${CFG}/$f 2>/dev/null)"; done; echo "platform=$(getprop ro.board.platform)"; echo "model=$(getprop ro.product.model)"; echo "version=$(grep '^version=' ${MODDIR}/module.prop | cut -d= -f2)"`)
     const kv = Object.fromEntries(out.split('\n').map(l => l.split('=')))
     document.getElementById('sw-auto-battery').checked = kv.auto_battery === '1'
     document.getElementById('sw-auto-game').checked = kv.auto_game !== '0'
@@ -398,6 +398,8 @@ async function loadSettings() {
     document.getElementById('svc-platform').textContent = kv.platform
         ? `${kv.platform}${kv.platform.startsWith('mt6989') ? ' ✓' : ' ⚠'}` : '—'
     document.getElementById('about-version').textContent = kv.version || ''
+    // Show the device the module is running on instead of a fixed model name
+    if (kv.model) document.getElementById('brand-sub').textContent = [kv.model, kv.platform].filter(Boolean).join(' · ')
 }
 
 function bindSwitch(id, file) {

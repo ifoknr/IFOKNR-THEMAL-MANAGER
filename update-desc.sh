@@ -8,4 +8,4 @@ case "$1" in
     *) ICON="⚖️ [Balanced]" ;;
 esac
 
-sed -i "s/^description=.*/description=Performance profiles, auto game mode and thermal guard for Galaxy Tab S10 Ultra (Dimensity 9300+). Current: $ICON/" "$MODDIR/module.prop"
+sed -i "s/^description=.*/description=Performance profiles, auto game mode and thermal guard. Current: $ICON/" "$MODDIR/module.prop"
