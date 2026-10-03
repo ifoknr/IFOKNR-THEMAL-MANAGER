@@ -1,3 +1,8 @@
-git add track.json
-git commit -m "Add track.json"
-git push
+{
+  "id": "اكتب_هنا_نفس_آيدي_الموديول",
+  "enable": true,
+  "source": "https://github.com/حسابك/اسم_المشروع",
+  "support": "https://github.com/حسابك/اسم_المشروع/issues",
+  "license": "GPL-3.0",
+  "antifeatures": []
+}
