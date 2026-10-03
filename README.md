@@ -1,6 +1,6 @@
-# NEXT - Thermal Manager
+# IFOKNR - Thermal Manager
 <p align="center">
-  <img src="./icon.png" alt="IFOKNR - Thermal Manager" width="100%">
+  <img src="./banner.png" alt="IFOKNR - Thermal Manager" width="100%">
 </p>
 
 
@@ -71,7 +71,7 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ---
 
-## 📝 Changelog v2.1
+## 📝 Changelog v2.1.1
 
 * Fixed: `dumpsys` was run every 4 s even with Auto Battery Saver off.
 * Fixed: Samsung GOS stayed disabled after removing the module (added `uninstall.sh`).
