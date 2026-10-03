@@ -11,6 +11,7 @@ nohup sh -c '
     sleep 10
     pm enable com.samsung.android.game.gos >/dev/null 2>&1
     pm enable com.samsung.android.game.gametools >/dev/null 2>&1
+    rm -rf /data/adb/thermalcore
 ' >/dev/null 2>&1 &
 
 # Frequency limits and GED boost are runtime-only and reset on reboot; make

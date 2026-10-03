@@ -1,10 +1,6 @@
 {
-  "id": "fast_charging_mod",
-  "enable": true,
-  "update_to": "https://github.com/username/fast_charging_mod/releases/latest/download/module.zip",
-  "changelog": "https://raw.githubusercontent.com/username/fast_charging_mod/main/changelog.md",
-  "source": "https://github.com/username/fast_charging_mod",
-  "support": "https://github.com/username/fast_charging_mod/issues",
-  "license": "GPL-3.0",
-  "antifeatures": []
+  "version": "v3.0.0",
+  "versionCode": 300,
+  "zipUrl": "https://github.com/ifoknr/IFOKNR-THEMAL-MANAGER/releases/download/v3.0.0/ThermalCore-v3.0.0.zip",
+  "changelog": "https://raw.githubusercontent.com/ifoknr/IFOKNR-THEMAL-MANAGER/dev/CHANGELOG.md"
 }

@@ -22,10 +22,10 @@ jobs:
           # استخراج رقم الإصدار من ملف module.prop
           VERSION=$(grep '^version=' module.prop | cut -d= -f2 | tr -d '\r')
           [ -z "$VERSION" ] && VERSION="v2.0"
-          ZIP_NAME="IFOKNR-Thermal-Manager-${VERSION}.zip"
+          ZIP_NAME="ThermalCore-${VERSION}.zip"
 
           # ضغط الملفات من الجذر مباشرة لضمان قبول التفليش في KernelSU/Magisk
-          zip -r9 "$ZIP_NAME" META-INF customize.sh uninstall.sh module.prop service.sh update-desc.sh webroot -x "*.git*" "*.github*" "README.md" "LICENSE"
+          zip -r9 "$ZIP_NAME" META-INF customize.sh uninstall.sh module.prop service.sh update-desc.sh games_default.txt webroot -x "*.git*" "*.github*" "README.md" "LICENSE"
 
           echo "zip_name=$ZIP_NAME" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -51,11 +51,11 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.package.outputs.version }}
-          name: "IFOKNR - Thermal Manager ${{ steps.package.outputs.version }}"
+          name: "ThermalCore ${{ steps.package.outputs.version }}"
           body: |
-            ### 🚀 IFOKNR - Thermal Manager (S10 Ultra Edition)
+            ### 🚀 ThermalCore (Galaxy Tab S10 Ultra)
             - Optimized for Samsung Galaxy Tab S10 Ultra (MediaTek Dimensity 9300+).
-            - Pure Black AMOLED UI with Cyberpunk/Neon accents.
+            - Auto game mode with per-game profiles and a thermal guard.
             - Custom profiles: Battery, Balanced, Performance, and Gaming.
             
             **Flash via KernelSU / APatch / Magisk.**

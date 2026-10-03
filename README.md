@@ -1,6 +1,6 @@
-# IFOKNR - Thermal Manager
+# ThermalCore
 <p align="center">
-  <img src="./banner.png" alt="IFOKNR - Thermal Manager" width="100%">
+  <img src="./banner.png" alt="ThermalCore" width="100%">
 </p>
 
 
@@ -12,7 +12,7 @@
 
 A specialized performance management module custom-tailored for the **Samsung Galaxy Tab S10 Ultra (MediaTek Dimensity 9300+)**. 
 
-This project is a dedicated fork of [Ahmed Al-Nassif's Thermal Manager](https://github.com/ahmed-alnassif), re-engineered specifically to accommodate Samsung's One UI environment, MediaTek's **All-Big-Core** architecture, and high-refresh-rate gaming—while ensuring **zero conflicts** with secondary thermal-locking modules.
+ThermalCore (formerly *IFOKNR - Thermal Manager*) is based on [Ahmed Al-Nassif's Thermal Manager](https://github.com/ahmed-alnassif), re-engineered specifically to accommodate Samsung's One UI environment, MediaTek's **All-Big-Core** architecture, and high-refresh-rate gaming—while ensuring **zero conflicts** with secondary thermal-locking modules.
 
 ---
 
@@ -22,7 +22,7 @@ This project is a dedicated fork of [Ahmed Al-Nassif's Thermal Manager](https://
 * **Dimensity 9300+ Core Scheduling:** Frequency floor/cap is applied only to the high-frequency clusters (auto-detected by max frequency: the Cortex-X4 cores `cpu4-7`). The Cortex-A720 cluster (`cpu0-3`) stays under the stock scheduler.
 * **MediaTek GED GPU Boost:** Directly interfaces with `/sys/module/ged/parameters` to force hardware acceleration during graphics-intensive loads.
 * **Samsung GOS Bypass:** Automatically halts Samsung's Game Optimizing Service (`com.samsung.android.game.gos`) and Game Tools in high-performance profiles to prevent aggressive thermal throttling.
-* **Cyberpunk AMOLED WebUI:** Rebuilt interface featuring a pure black AMOLED foundation (`#030508`), dual-tone Neon HUD accents (Cyan & Pink), frosted-glass containers, and direct hardware state inspection.
+* **AMOLED WebUI:** Live status card with SoC temperature, Profiles / Games / Settings tabs, dropdown menus and collapsible sections, in English and Arabic.
 
 ---
 
@@ -39,29 +39,32 @@ This project is a dedicated fork of [Ahmed Al-Nassif's Thermal Manager](https://
 
 ## 🌟 Key Features
 
+* **Auto Game Mode:** When a game from your list is in the foreground, ThermalCore switches to its profile (Gaming by default, or a per-game choice of Gaming / Performance / Balanced) and returns to your profile when you leave. Installed games are detected from a bundled list of 500+ packages; add or remove any app in the *Games* tab.
+
 * **Real-time WebUI:** Seamlessly switch performance modes from inside KernelSU, ReSukiSU, or APatch WebUI without rebooting.
 * **Auto Battery Saver:** Background screen-off awareness via power hal checks; instantly transitions to energy-saving states when the screen locks, and restores the active profile upon unlocking.
 * **Persistent Settings:** Automatically restores the selected profile upon system reboot.
 * **Battery-friendly loop:** The screen state is queried (`dumpsys power`) only when *Auto Battery Saver* is enabled; otherwise the service just re-reads its mode file every 5 s.
-* **Gaming Thermal Guard:** In Gaming mode the hottest CPU/SoC/GPU zone is read (read-only). At the limit (default 75 °C, override by writing a number to `/data/adb/modules/thermal_mode_manager/temp_limit`) the CPU floor is released and Samsung GOS is re-enabled; Gaming resumes 7 °C below the limit. If no matching zone is found, the guard is inactive and this is written to `service.log`.
+* **Thermal Guard:** In Gaming and Performance the hottest CPU/SoC/GPU zone is read (read-only). At the limit (60–85 °C, default 75 °C, set in *Settings → Thermal guard*) the CPU floor and GPU boost are released and Samsung GOS is re-enabled; the profile resumes 7 °C below the limit. Android's own thermal protection is never disabled. If no matching zone is found, the guard is inactive and this is written to `service.log`.
 * **Clean uninstall:** `uninstall.sh` re-enables GOS / Game Tools after the next boot. Tip: switch to Balanced before removing the module.
 
 ---
 
 ## 🛠️ Installation
 
-1. Download the latest `IFOKNR-Thermal-Manager-*.zip` from the [Releases](https://github.com/ifoknr/Thermal-Manager-Samsung-Galaxy-Tab-S10-Ultra/releases) page.
+1. Download the latest `ThermalCore-*.zip` from the [Releases](https://github.com/ifoknr/IFOKNR-THEMAL-MANAGER/releases) page.
 2. Open your root manager (**KernelSU**, **ReSukiSU**, **APatch**, or **Magisk**).
 3. Navigate to **Modules** → **Install from storage** and select the ZIP file.
 4. Reboot your tablet once the installation completes.
-5. Launch the interface from **KernelSU/ReSukiSU** → **Modules** → **IFOKNR - Thermal Manager WebUI**.
+5. Launch the interface from **KernelSU/ReSukiSU** → **Modules** → **ThermalCore**.
 
 ---
 
 ## 🤝 Credits & Acknowledgements
 
 * **Original Developer:** [Ahmed Al-Nassif](https://github.com/ahmed-alnassif) for the initial foundation and WebUI concepts.
-* **Modification & Optimization:** Maintained by **[ifoknr](https://github.com/ifoknr)** specifically for Samsung Galaxy Tab S10 Ultra devices.
+* **Game list:** [Licking Thermal](https://github.com/fuckyoustan/Licking-Thermal) by STAN (Apache-2.0, see `NOTICE`).
+* **Development & Maintenance:** **[ifoknr](https://github.com/ifoknr)**.
 
 ---
 
@@ -71,15 +74,5 @@ This project is licensed under the [GNU General Public License v3.0](LICENSE).
 
 ---
 
-## 📝 Changelog v2.1.1
-
-* Fixed: `dumpsys` was run every 4 s even with Auto Battery Saver off.
-* Fixed: Samsung GOS stayed disabled after removing the module (added `uninstall.sh`).
-* Added: Gaming thermal guard (see above).
-* Fixed: `up_rate_limit_us` is now written in the per-policy governor directory; `sugov_ext` is used only if available, otherwise `schedutil`.
-* Fixed: switching Gaming → Battery left the 1.8 GHz floor above the 1.4 GHz cap; frequencies are reset first.
-* Changed: Balanced now restores each policy's stock governor (saved at boot) instead of forcing `schedutil`.
-* Changed: big clusters are detected by max frequency instead of hard-coded `cpu4-7`.
-* Removed: `persist.sys.thermal.screen` (no verified effect).
-* Fixed: WebUI shows the real platform (`ro.board.platform`) instead of any device with `/sys/class/thermal`.
-* Fixed: installer script renamed `config.sh` → `customize.sh` (the old file was never loaded by modern Magisk/KernelSU).
+## 📝 Changelog
+See [CHANGELOG.md](CHANGELOG.md).
