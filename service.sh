@@ -43,7 +43,7 @@ sleep 5
 [ -f "$CFG/auto_battery" ] || echo 0 > "$CFG/auto_battery"
 [ -f "$CFG/auto_game" ] || echo 1 > "$CFG/auto_game"
 [ -f "$CFG/game_mode" ] || echo gaming > "$CFG/game_mode"
-[ -f "$CFG/notify" ] || echo 0 > "$CFG/notify"
+[ -f "$CFG/notify" ] || echo 1 > "$CFG/notify"
 [ -f "$CFG/temp_limit" ] || echo "$TEMP_LIMIT_DEFAULT" > "$CFG/temp_limit"
 [ -f "$CFG/games.txt" ] || : > "$CFG/games.txt"
 [ -f "$CFG/app_profiles" ] || : > "$CFG/app_profiles"
@@ -232,10 +232,22 @@ screen_is_on() {
     dumpsys power 2>/dev/null | grep -q "mWakefulness=Awake"
 }
 
-# Package of the focused window, e.g. "com.tencent.ig"
-foreground_pkg() {
-    dumpsys window 2>/dev/null | grep -m1 mCurrentFocus \
-        | sed -n 's/.* u[0-9]* \([^/ }]*\).*/\1/p'
+# Packages of all resumed activities (focused one first). Unlike the focused
+# window, these stay on the game while the notification shade or another
+# overlay is pulled down, and they include both apps in split screen.
+resumed_pkgs() {
+    pk=$(dumpsys activity activities 2>/dev/null | grep -E 'ResumedActivity' \
+        | sed -n 's/.* u[0-9]* \([^/ }]*\)\/.*/\1/p')
+    [ -n "$pk" ] || pk=$(dumpsys window 2>/dev/null | grep -m1 mCurrentFocus \
+        | sed -n 's/.* u[0-9]* \([^/ }]*\).*/\1/p')
+    echo "$pk"
+}
+
+# First listed game among the resumed packages
+foreground_game() {
+    for pk in $(resumed_pkgs); do
+        is_game "$pk" && { echo "$pk"; return; }
+    done
 }
 
 is_game() {
@@ -249,9 +261,74 @@ game_profile_for() {
     norm_mode "$p"
 }
 
-notify() {
+# ---------------------------------------------------- status notification ---
+# One notification (tag "thermalcore") that is updated in place with the active
+# profile and the SoC temperature. It is re-posted on every change, so it comes
+# back if it was swiped away.
+NOTIF_TAG=thermalcore
+NOTIF_LAST=""
+NOTIF_TIME=0
+NOTIF_TEMP=0
+
+notif_key() {
+    dumpsys notification 2>/dev/null \
+        | grep -o "0|com.android.shell|[0-9]*|$NOTIF_TAG|[0-9]*" | head -n1
+}
+
+profile_label() {
+    case "$1" in
+        gaming) echo "🎮 Gaming" ;;
+        performance) echo "⚡ Performance" ;;
+        battery) echo "🔋 Battery" ;;
+        *) echo "⚖️ Balanced" ;;
+    esac
+}
+
+# App label saved by the WebUI, else the package name
+app_label() {
+    l=$(grep -m1 "^$1=" "$CFG/labels" 2>/dev/null | cut -d= -f2-)
+    echo "${l:-$1}" | tr -d "'\"\\\\"
+}
+
+# notify_status <profile> <source> <pkg> <hot> <temp> <limit> [force]
+notify_status() {
     [ "$(cat "$CFG/notify" 2>/dev/null)" = "1" ] || return 0
-    su -lp 2000 -c "cmd notification post -S bigtext -t 'ThermalCore' thermalcore '$1'" >/dev/null 2>&1
+    now=$(date +%s)
+    key="$1|$2|$3|$4"
+    diff=$(( $5 - NOTIF_TEMP )); [ "$diff" -lt 0 ] && diff=$(( -diff ))
+    # Post on a state change; temperature-only updates at most every 30 s
+    # (and only on a 2 C move), plus a refresh every 5 min.
+    if [ -z "$7" ] && [ "$key" = "$NOTIF_LAST" ]; then
+        if [ $((now - NOTIF_TIME)) -lt 300 ]; then
+            [ "$diff" -ge 2 ] && [ $((now - NOTIF_TIME)) -ge 30 ] || return 0
+        fi
+    fi
+    title="ThermalCore · $(profile_label "$1")"
+    if [ "$5" -gt 0 ] 2>/dev/null; then
+        body="🌡️ $5°C / $6°C"
+    else
+        body="🌡️ --"
+    fi
+    case "$2" in
+        game) body="$body · $(app_label "$3")" ;;
+        screen_off) body="$body · Screen off" ;;
+    esac
+    [ "$4" = "1" ] && body="$body · ⏸ Boost paused (hot)"
+    su -lp 2000 -c "cmd notification post -S bigtext -t '$title' $NOTIF_TAG '$body'" >/dev/null 2>&1
+    NOTIF_LAST="$key"; NOTIF_TIME=$now; NOTIF_TEMP=$5
+}
+
+# Hide the notification when the option is turned off (best effort: snooze it)
+notify_hide() {
+    k=$(notif_key)
+    [ -n "$k" ] && su -lp 2000 -c "cmd notification snooze --for 31536000000 '$k'" >/dev/null 2>&1
+    NOTIF_LAST=""
+}
+
+notify_unhide() {
+    k=$(notif_key)
+    [ -n "$k" ] || k="0|com.android.shell|2020|$NOTIF_TAG|2000"
+    su -lp 2000 -c "cmd notification unsnooze '$k'" >/dev/null 2>&1
 }
 
 # Snapshot for the WebUI: effective profile, why, game package, guard state
@@ -273,6 +350,9 @@ fi
 LAST_MODE=""
 LAST_PKG=""
 HOT=0
+GAME_PKG=""
+GAME_MISS=0
+NOTIFY_ON=""
 
 while true; do
     USER_MODE=$(norm_mode "$(cat "$CFG/mode" 2>/dev/null)")
@@ -290,12 +370,24 @@ while true; do
         SOURCE=screen_off
     fi
     if [ "$SCREEN" = "on" ] && [ "$AUTO_GAME" = "1" ]; then
-        FG=$(foreground_pkg)
-        if is_game "$FG"; then
-            PKG="$FG"
-            EFFECTIVE=$(game_profile_for "$FG")
+        FG=$(foreground_game)
+        if [ -n "$FG" ]; then
+            GAME_PKG="$FG"
+            GAME_MISS=0
+        elif [ -n "$GAME_PKG" ]; then
+            # Leave the game profile only after two misses in a row (~10 s),
+            # so short overlays never drop the profile.
+            GAME_MISS=$((GAME_MISS + 1))
+            [ "$GAME_MISS" -ge 2 ] && GAME_PKG=""
+        fi
+        if [ -n "$GAME_PKG" ]; then
+            PKG="$GAME_PKG"
+            EFFECTIVE=$(game_profile_for "$GAME_PKG")
             SOURCE=game
         fi
+    else
+        GAME_PKG=""
+        GAME_MISS=0
     fi
 
     if [ "$EFFECTIVE" != "$LAST_MODE" ]; then
@@ -303,28 +395,23 @@ while true; do
         set_profile "$EFFECTIVE"
         LAST_MODE="$EFFECTIVE"
         write_state "$EFFECTIVE" "$SOURCE" "$PKG" "$HOT"
-        if [ "$SOURCE" = "game" ]; then
-            notify "🎮 $EFFECTIVE for $PKG"
-        elif [ -n "$LAST_PKG" ]; then
-            notify "⚖️ Back to $EFFECTIVE"
-        fi
         LAST_PKG="$PKG"
     elif [ "$PKG" != "$LAST_PKG" ]; then
         write_state "$EFFECTIVE" "$SOURCE" "$PKG" "$HOT"
         LAST_PKG="$PKG"
     fi
 
+    TEMP=$(get_soc_temp)
+    LIMIT=$(get_temp_limit)
+
     # Thermal guard for the boosted profiles
     case "$EFFECTIVE" in
         gaming|performance)
-            TEMP=$(get_soc_temp)
-            LIMIT=$(get_temp_limit)
             if [ "$HOT" = "0" ] && [ "$TEMP" -ge "$LIMIT" ]; then
                 HOT=1
                 release_boost
                 write_state "$EFFECTIVE" "$SOURCE" "$PKG" "$HOT"
                 log "Thermal guard: ${TEMP}C >= ${LIMIT}C, boost released and GOS re-enabled"
-                notify "🌡️ ${TEMP}°C: boost paused"
             elif [ "$HOT" = "1" ] && [ "$TEMP" -le $((LIMIT - TEMP_HYST)) ]; then
                 HOT=0
                 set_profile "$EFFECTIVE"
@@ -333,6 +420,20 @@ while true; do
             fi
             ;;
     esac
+
+    # Status notification follows the switch in the WebUI
+    N=$(cat "$CFG/notify" 2>/dev/null)
+    if [ "$N" != "$NOTIFY_ON" ]; then
+        if [ "$N" = "1" ]; then
+            [ -n "$NOTIFY_ON" ] && notify_unhide
+            notify_status "$EFFECTIVE" "$SOURCE" "$PKG" "$HOT" "$TEMP" "$LIMIT" force
+        elif [ -n "$NOTIFY_ON" ]; then
+            notify_hide
+        fi
+        NOTIFY_ON="$N"
+    else
+        notify_status "$EFFECTIVE" "$SOURCE" "$PKG" "$HOT" "$TEMP" "$LIMIT"
+    fi
 
     sleep 5
 done

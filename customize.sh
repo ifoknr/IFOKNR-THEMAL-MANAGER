@@ -37,6 +37,12 @@ for m in thermal_mode_manager LickingT; do
   fi
 done
 
+# Status notification is on from the first install (can be turned off later)
+if [ ! -f "$CFG/.notify_init" ]; then
+  echo 1 > "$CFG/notify"
+  touch "$CFG/.notify_init"
+fi
+
 # Seed the game list with the installed games from the bundled list
 if [ ! -s "$CFG/games.txt" ]; then
   INSTALLED="$TMPDIR/installed.txt"

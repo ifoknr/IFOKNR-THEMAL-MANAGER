@@ -17,7 +17,7 @@ const I18N = {
         search: 'Search apps…', loadingApps: 'Loading apps…', noApps: 'No apps found',
         automation: 'Automation',
         autoBattery: 'Battery Saver when screen is off', autoBatterySub: 'Returns to your profile when you unlock',
-        notify: 'Notifications', notifySub: 'Notify when a game profile or the guard kicks in',
+        notify: 'Status notification', notifySub: 'Always shows the active profile and SoC temperature',
         thermalGuard: 'Thermal guard', tempLimit: 'Temperature limit',
         tempLimitSub: 'Gaming / Performance boost pauses above this and resumes 7°C lower',
         tempWarn: "Higher limits mean longer boost but a hotter device. Android's own thermal protection always stays on.",
@@ -50,7 +50,7 @@ const I18N = {
         search: 'ابحث عن تطبيق…', loadingApps: 'جاري تحميل التطبيقات…', noApps: 'لا توجد تطبيقات',
         automation: 'الأتمتة',
         autoBattery: 'توفير البطارية عند إطفاء الشاشة', autoBatterySub: 'يرجع لوضعك عند فتح القفل',
-        notify: 'الإشعارات', notifySub: 'إشعار عند تفعيل وضع لعبة أو الحماية الحرارية',
+        notify: 'إشعار الحالة', notifySub: 'يعرض دائماً الوضع المفعّل وحرارة المعالج',
         thermalGuard: 'الحماية الحرارية', tempLimit: 'حد الحرارة',
         tempLimitSub: 'يتوقف تسريع الألعاب/الأداء فوق هذا الحد ويرجع بعد ما تنزل 7°',
         tempWarn: 'الحد الأعلى يعني تسريع أطول لكن جهاز أسخن. حماية أندرويد الحرارية الأصلية تبقى شغالة دائماً.',
@@ -293,7 +293,10 @@ async function saveGames() {
     const profiles = Object.entries(state.appProfiles)
         .filter(([p, m]) => PKG_RE.test(p) && PROFILES[m])
         .map(([p, m]) => `${p}=${m}`).join('\n')
-    await sh(`mkdir -p ${CFG} && printf '%s\\n' '${list}' | grep . > ${CFG}/games.txt; printf '%s\\n' '${profiles}' | grep . > ${CFG}/app_profiles; true`)
+    // Labels let the status notification show "PUBG Mobile" instead of the package
+    const labels = [...state.games].filter(p => PKG_RE.test(p))
+        .map(p => `${p}=${(apps.find(a => a.pkg === p)?.label || p).replace(/['"\\\n=]/g, '')}`).join('\n')
+    await sh(`mkdir -p ${CFG} && printf '%s\\n' '${list}' | grep . > ${CFG}/games.txt; printf '%s\\n' '${profiles}' | grep . > ${CFG}/app_profiles; printf '%s\\n' '${labels}' | grep . > ${CFG}/labels; true`)
 }
 
 function appProfileOptions() {
@@ -381,6 +384,7 @@ async function loadApps() {
     } catch { }
     apps = names.map(pkg => ({ pkg, label: labels[pkg] || pkg }))
     renderApps()
+    saveGames()
 }
 
 // -------------------------------------------------------------- settings ---

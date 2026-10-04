@@ -1,5 +1,10 @@
 # Changelog
 
+## v3.0.1
+* Fixed: pulling down the notification shade (or another overlay) during a game switched back to the normal profile. Games are now detected from the resumed activities (also covers split screen), and the game profile is only left after ~10 s without the game.
+* New: a status notification is on from install and always shows the active profile, the game and the SoC temperature (updated in place; can be turned off in Settings).
+* Changed: the WebUI scales with the screen: larger text and controls on tablets, two-column games list and settings on wide screens.
+
 ## v3.0.0 — ThermalCore
 * Renamed IFOKNR - Thermal Manager → **ThermalCore** (module id `thermalcore`).
 * New: auto game mode. A game from the list in the foreground switches to its own profile (default Gaming, per-game override), and back when it closes.
