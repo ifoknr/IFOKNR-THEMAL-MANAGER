@@ -22,7 +22,7 @@ const I18N = {
         tempLimitSub: 'Gaming / Performance boost pauses above this and resumes 7°C lower',
         tempWarn: "Higher limits mean longer boost but a hotter device. Android's own thermal protection always stays on.",
         service: 'Service', status: 'Status', platform: 'Platform',
-        restart: 'Restart service', showLog: 'Show log', hideLog: 'Hide log',
+        restart: 'Restart service', sensors: 'Sensors', showLog: 'Show log', hideLog: 'Hide log',
         about: 'About', aboutBy: 'Developed and maintained by <b>ifoknr</b>',
         credits: 'Based on Thermal Manager by Ahmed Al-Nassif. Game list from Licking Thermal by STAN (Apache-2.0).',
         tabProfiles: 'Profiles', tabGames: 'Games', tabSettings: 'Settings',
@@ -55,7 +55,7 @@ const I18N = {
         tempLimitSub: 'يتوقف تسريع الألعاب/الأداء فوق هذا الحد ويرجع بعد ما تنزل 7°',
         tempWarn: 'الحد الأعلى يعني تسريع أطول لكن جهاز أسخن. حماية أندرويد الحرارية الأصلية تبقى شغالة دائماً.',
         service: 'الخدمة', status: 'الحالة', platform: 'المنصة',
-        restart: 'إعادة تشغيل الخدمة', showLog: 'عرض السجل', hideLog: 'إخفاء السجل',
+        restart: 'إعادة تشغيل الخدمة', sensors: 'الحساسات', showLog: 'عرض السجل', hideLog: 'إخفاء السجل',
         about: 'حول', aboutBy: 'تطوير وصيانة <b>ifoknr</b>',
         credits: 'مبني على Thermal Manager لأحمد النصيف. قائمة الألعاب من Licking Thermal لـ STAN (Apache-2.0).',
         tabProfiles: 'الأوضاع', tabGames: 'الألعاب', tabSettings: 'الإعدادات',
@@ -264,8 +264,13 @@ async function refreshStatus() {
         echo "state=$(cat ${CFG}/state 2>/dev/null)"
         echo "limit=$(cat ${CFG}/temp_limit 2>/dev/null)"
         pid=$(cat ${CFG}/service.pid 2>/dev/null)
-        [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null && echo "pid=$pid"
-        echo "temp=$(${TEMP_CMD})"
+        if [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null; then
+            echo "pid=$pid"
+            # Smoothed value written by the service, so UI and notification agree
+            echo "temp=$(cut -d' ' -f1 ${CFG}/temp 2>/dev/null)"
+        else
+            echo "temp=$(${TEMP_CMD})"
+        fi
     `)
     const kv = Object.fromEntries(out.split('\n').map(l => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]))
     state.mode = normMode(kv.mode)
@@ -480,6 +485,14 @@ function init() {
         await sh(`pid=$(cat ${CFG}/service.pid 2>/dev/null); [ -n "$pid" ] && kill "$pid" 2>/dev/null; nohup sh ${MODDIR}/service.sh >/dev/null 2>&1 &`)
         toast(t('restarted'))
         setTimeout(refreshStatus, 1500)
+    })
+
+    // Every thermal zone with its current value; ✓ marks the ones ThermalCore reads
+    document.getElementById('btn-sensors').addEventListener('click', async () => {
+        const log = document.getElementById('log')
+        log.hidden = false
+        document.getElementById('btn-log').textContent = t('hideLog')
+        log.textContent = (await sh(`for z in /sys/class/thermal/thermal_zone*; do t=$(cat $z/type 2>/dev/null); v=$(cat $z/temp 2>/dev/null); [ -n "$v" ] || continue; [ "$v" -gt 1000 ] 2>/dev/null && v=$((v/1000)); case "$t" in *cpu*|*soc*|*gpu*|*big*|*mtk*) m='✓';; *) m='·';; esac; echo "$v $m $t"; done | sort -rn | awk '{printf "%s %4s°C  %s\\n", $2, $1, $3}'`)) || '—'
     })
 
     document.getElementById('btn-log').addEventListener('click', async e => {

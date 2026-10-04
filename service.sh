@@ -296,11 +296,11 @@ notify_status() {
     now=$(date +%s)
     key="$1|$2|$3|$4"
     diff=$(( $5 - NOTIF_TEMP )); [ "$diff" -lt 0 ] && diff=$(( -diff ))
-    # Post on a state change; temperature-only updates at most every 30 s
-    # (and only on a 2 C move), plus a refresh every 5 min.
+    # Post on a state change; temperature-only updates at most every 60 s
+    # (and only on a 3 C move), plus a refresh every 10 min.
     if [ -z "$7" ] && [ "$key" = "$NOTIF_LAST" ]; then
-        if [ $((now - NOTIF_TIME)) -lt 300 ]; then
-            [ "$diff" -ge 2 ] && [ $((now - NOTIF_TIME)) -ge 30 ] || return 0
+        if [ $((now - NOTIF_TIME)) -lt 600 ]; then
+            [ "$diff" -ge 3 ] && [ $((now - NOTIF_TIME)) -ge 60 ] || return 0
         fi
     fi
     title="ThermalCore · $(profile_label "$1")"
@@ -343,6 +343,12 @@ save_original_governors
 if [ -z "$(big_policies)" ]; then
     log "No cpufreq policy >= ${BIG_MIN_KHZ} kHz found: CPU floor/cap will not be applied"
 fi
+ZONES=""
+for z in /sys/class/thermal/thermal_zone*; do
+    t=$(cat "$z/type" 2>/dev/null)
+    case "$t" in *cpu*|*soc*|*gpu*|*big*|*mtk*) ZONES="$ZONES $t" ;; esac
+done
+log "Temperature sensors used:${ZONES:- none}"
 if [ "$(get_soc_temp)" = "0" ]; then
     log "No usable thermal zone found: thermal guard is inactive"
 fi
@@ -353,6 +359,8 @@ HOT=0
 GAME_PKG=""
 GAME_MISS=0
 NOTIFY_ON=""
+TEMP_X10=0
+OVER=0
 
 while true; do
     USER_MODE=$(norm_mode "$(cat "$CFG/mode" 2>/dev/null)")
@@ -392,6 +400,7 @@ while true; do
 
     if [ "$EFFECTIVE" != "$LAST_MODE" ]; then
         HOT=0
+        OVER=0
         set_profile "$EFFECTIVE"
         LAST_MODE="$EFFECTIVE"
         write_state "$EFFECTIVE" "$SOURCE" "$PKG" "$HOT"
@@ -401,22 +410,40 @@ while true; do
         LAST_PKG="$PKG"
     fi
 
-    TEMP=$(get_soc_temp)
+    # Core sensors spike for a moment with every burst of load, so the raw
+    # hottest value is smoothed (exponential average, ~15 s) before it is shown
+    # or used by the guard.
+    RAW=$(get_soc_temp)
+    if [ "$RAW" -gt 0 ] 2>/dev/null; then
+        if [ "$TEMP_X10" -eq 0 ]; then
+            TEMP_X10=$((RAW * 10))
+        else
+            TEMP_X10=$(( (TEMP_X10 * 2 + RAW * 10) / 3 ))
+        fi
+    fi
+    TEMP=$(( (TEMP_X10 + 5) / 10 ))
+    echo "$TEMP $RAW" > "$CFG/temp"
     LIMIT=$(get_temp_limit)
 
     # Thermal guard for the boosted profiles
     case "$EFFECTIVE" in
         gaming|performance)
-            if [ "$HOT" = "0" ] && [ "$TEMP" -ge "$LIMIT" ]; then
+            # Trip only after two smoothed readings in a row at the limit
+            if [ "$TEMP" -ge "$LIMIT" ]; then
+                OVER=$((OVER + 1))
+            else
+                OVER=0
+            fi
+            if [ "$HOT" = "0" ] && [ "$OVER" -ge 2 ]; then
                 HOT=1
                 release_boost
                 write_state "$EFFECTIVE" "$SOURCE" "$PKG" "$HOT"
-                log "Thermal guard: ${TEMP}C >= ${LIMIT}C, boost released and GOS re-enabled"
+                log "Thermal guard: ${TEMP}C (raw ${RAW}C) >= ${LIMIT}C, boost released and GOS re-enabled"
             elif [ "$HOT" = "1" ] && [ "$TEMP" -le $((LIMIT - TEMP_HYST)) ]; then
                 HOT=0
                 set_profile "$EFFECTIVE"
                 write_state "$EFFECTIVE" "$SOURCE" "$PKG" "$HOT"
-                log "Thermal guard: ${TEMP}C, $EFFECTIVE restored"
+                log "Thermal guard: ${TEMP}C (raw ${RAW}C), $EFFECTIVE restored"
             fi
             ;;
     esac
