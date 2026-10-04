@@ -40,6 +40,10 @@
                         <span dir="ltr"><b id="temp-now">--</b>°C <span class="muted">/ <span id="temp-limit">--</span>°C</span></span>
                     </div>
                     <div class="temp-bar"><div class="temp-fill" id="temp-fill"></div></div>
+                    <div class="temp-row batt-row">
+                        <span data-i18n="battTemp">Battery temperature</span>
+                        <span dir="ltr"><b id="batt-now">--</b>°C</span>
+                    </div>
                     <div class="temp-note" id="temp-note" hidden></div>
                 </div>
             </section>
@@ -98,7 +102,7 @@
                         <div class="row">
                             <div class="row-text">
                                 <div class="row-title" data-i18n="notify">Status notification</div>
-                                <div class="row-sub" data-i18n="notifySub">Always shows the active profile and SoC temperature</div>
+                                <div class="row-sub" data-i18n="notifySub">Always shows the active profile, CPU and battery temperature</div>
                             </div>
                             <label class="switch"><input type="checkbox" id="sw-notify" /><span></span></label>
                         </div>

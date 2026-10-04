@@ -1,7 +1,7 @@
 id=thermalcore
 name=ThermalCore
-version=v3.0.2
-versionCode=302
+version=v3.0.3
+versionCode=303
 author=ifoknr
 description=Performance profiles, auto game mode and thermal guard. Current: ⚖️ [Balanced]
 updateJson=https://raw.githubusercontent.com/ifoknr/IFOKNR-THEMAL-MANAGER/dev/update.json

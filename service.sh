@@ -165,6 +165,15 @@ get_soc_temp() {
     echo "$max"
 }
 
+# Battery temperature in deg C (power_supply reports tenths), 0 if unknown
+get_batt_temp() {
+    v=$(cat /sys/class/power_supply/battery/temp 2>/dev/null)
+    case "$v" in
+        ''|*[!0-9-]*) echo 0 ;;
+        *) echo $(( (v + 5) / 10 )) ;;
+    esac
+}
+
 get_temp_limit() {
     l=$(cat "$CFG/temp_limit" 2>/dev/null)
     case "$l" in
@@ -305,10 +314,11 @@ notify_status() {
     fi
     title="ThermalCore · $(profile_label "$1")"
     if [ "$5" -gt 0 ] 2>/dev/null; then
-        body="🌡️ $5°C / $6°C"
+        body="🌡️ CPU $5°C / $6°C"
     else
-        body="🌡️ --"
+        body="🌡️ CPU --"
     fi
+    [ "${BATT:-0}" -gt 0 ] 2>/dev/null && body="$body · 🔋 ${BATT}°C"
     case "$2" in
         game) body="$body · $(app_label "$3")" ;;
         screen_off) body="$body · Screen off" ;;
@@ -422,7 +432,8 @@ while true; do
         fi
     fi
     TEMP=$(( (TEMP_X10 + 5) / 10 ))
-    echo "$TEMP $RAW" > "$CFG/temp"
+    BATT=$(get_batt_temp)
+    echo "$TEMP $RAW $BATT" > "$CFG/temp"
     LIMIT=$(get_temp_limit)
 
     # Thermal guard for the boosted profiles

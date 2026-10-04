@@ -1,5 +1,8 @@
 # Changelog
 
+## v3.0.3
+* New: battery temperature next to the CPU temperature in the WebUI status card and in the status notification (`🌡️ CPU 62°C / 75°C · 🔋 38°C`).
+
 ## v3.0.2
 * Fixed: the temperature jumped up and down because the hottest core sensor spikes for a moment with every burst of load. The reading is now smoothed (~15 s), the thermal guard trips only after two smoothed readings at the limit, and the WebUI and notification show the same smoothed value.
 * New: Settings → Service → Sensors lists every thermal zone with its current value (✓ = used by ThermalCore); the sensors used are also written to the log at boot.

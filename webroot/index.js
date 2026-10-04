@@ -9,7 +9,7 @@ const TEMP_HYST = 7
 
 const I18N = {
     en: {
-        activeProfile: 'Active profile', socTemp: 'SoC temperature',
+        activeProfile: 'Active profile', socTemp: 'CPU temperature', battTemp: 'Battery temperature',
         chooseProfile: 'Choose a profile',
         profileHint: 'Games in your list switch to their own profile automatically.',
         autoGame: 'Auto game mode', autoGameSub: 'Switch profile when a game from the list is open',
@@ -17,7 +17,7 @@ const I18N = {
         search: 'Search apps…', loadingApps: 'Loading apps…', noApps: 'No apps found',
         automation: 'Automation',
         autoBattery: 'Battery Saver when screen is off', autoBatterySub: 'Returns to your profile when you unlock',
-        notify: 'Status notification', notifySub: 'Always shows the active profile and SoC temperature',
+        notify: 'Status notification', notifySub: 'Always shows the active profile, CPU and battery temperature',
         thermalGuard: 'Thermal guard', tempLimit: 'Temperature limit',
         tempLimitSub: 'Gaming / Performance boost pauses above this and resumes 7°C lower',
         tempWarn: "Higher limits mean longer boost but a hotter device. Android's own thermal protection always stays on.",
@@ -42,7 +42,7 @@ const I18N = {
         recommended: 'recommended',
     },
     ar: {
-        activeProfile: 'الوضع الحالي', socTemp: 'حرارة المعالج',
+        activeProfile: 'الوضع الحالي', socTemp: 'حرارة المعالج', battTemp: 'حرارة البطارية',
         chooseProfile: 'اختر الوضع',
         profileHint: 'الألعاب الموجودة في قائمتك تتحول لوضعها الخاص تلقائياً.',
         autoGame: 'وضع الألعاب التلقائي', autoGameSub: 'يغيّر الوضع عند فتح لعبة من القائمة',
@@ -50,7 +50,7 @@ const I18N = {
         search: 'ابحث عن تطبيق…', loadingApps: 'جاري تحميل التطبيقات…', noApps: 'لا توجد تطبيقات',
         automation: 'الأتمتة',
         autoBattery: 'توفير البطارية عند إطفاء الشاشة', autoBatterySub: 'يرجع لوضعك عند فتح القفل',
-        notify: 'إشعار الحالة', notifySub: 'يعرض دائماً الوضع المفعّل وحرارة المعالج',
+        notify: 'إشعار الحالة', notifySub: 'يعرض دائماً الوضع المفعّل وحرارة المعالج والبطارية',
         thermalGuard: 'الحماية الحرارية', tempLimit: 'حد الحرارة',
         tempLimitSub: 'يتوقف تسريع الألعاب/الأداء فوق هذا الحد ويرجع بعد ما تنزل 7°',
         tempWarn: 'الحد الأعلى يعني تسريع أطول لكن جهاز أسخن. حماية أندرويد الحرارية الأصلية تبقى شغالة دائماً.',
@@ -238,6 +238,7 @@ function renderHero() {
     svc.className = 'chip ' + (state.running ? 'ok' : 'bad')
 
     document.getElementById('temp-now').textContent = state.temp || '--'
+    document.getElementById('batt-now').textContent = state.batt || '--'
     document.getElementById('temp-limit').textContent = state.limit
     document.getElementById('temp-fill').style.width = `${Math.min(100, (state.temp / state.limit) * 100)}%`
     const note = document.getElementById('temp-note')
@@ -271,6 +272,9 @@ async function refreshStatus() {
         else
             echo "temp=$(${TEMP_CMD})"
         fi
+        # Battery reports tenths of a degree
+        b=$(cat /sys/class/power_supply/battery/temp 2>/dev/null)
+        [ -n "$b" ] && echo "batt=$(( (b + 5) / 10 ))"
     `)
     const kv = Object.fromEntries(out.split('\n').map(l => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)]))
     state.mode = normMode(kv.mode)
@@ -283,6 +287,7 @@ async function refreshStatus() {
     state.hot = hot === '1'
     state.limit = Math.min(85, Math.max(60, parseInt(kv.limit) || 75))
     state.temp = parseInt(kv.temp) || 0
+    state.batt = parseInt(kv.batt) || 0
     renderHero()
     document.querySelectorAll('.profile').forEach((c, i) => c.classList.toggle('active', PROFILE_IDS[i] === state.mode))
 }
